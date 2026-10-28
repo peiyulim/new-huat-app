@@ -1,0 +1,6 @@
+{
+  "name": "hub-sales-dashboard",
+  "private": true,
+  "description": "Hub Sales dashboard: approved revenue by salesperson and customer, with Finance approval.",
+  "engines": { "node": ">=18" }
+}

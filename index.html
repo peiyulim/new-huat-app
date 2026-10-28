@@ -1,0 +1,801 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Hub Sales Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky ink header with tabs; one 1280px column of panels — KPI strip, then comparison charts, then detail tables. */
+:root{
+  --bg:#f3f4f2; --panel:#fcfcfb; --ink:#14181b; --ink-2:#50565b; --muted:#80868a;
+  --line:#e1e3df; --axis:#c4c7c3; --hover:#eceeea;
+  --accent:#1f4e5f; --accent-ink:#ffffff; --accent-soft:#e1ecef;
+  --head:#14262e; --head-ink:#e9f0f1; --head-muted:#97aab0;
+  --good:#0ca30c; --good-ink:#006300; --warn:#fab219; --warn-ink:#8a5a00; --bad:#d03b3b; --bad-ink:#b02a2a;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+  --font:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r:8px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1213; --panel:#171b1c; --ink:#eef0ee; --ink-2:#c0c5c2; --muted:#8a9093;
+  --line:#2a2f30; --axis:#3b4142; --hover:#20262a;
+  --accent:#86bccd; --accent-ink:#0f1213; --accent-soft:#1c3037;
+  --head:#0b1518; --head-ink:#e9f0f1; --head-muted:#8299a0;
+  --good:#0ca30c; --good-ink:#3fc13f; --warn:#fab219; --warn-ink:#f2c55c; --bad:#d03b3b; --bad-ink:#ef7a7a;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1213; --panel:#171b1c; --ink:#eef0ee; --ink-2:#c0c5c2; --muted:#8a9093;
+  --line:#2a2f30; --axis:#3b4142; --hover:#20262a;
+  --accent:#86bccd; --accent-ink:#0f1213; --accent-soft:#1c3037;
+  --head:#0b1518; --head-ink:#e9f0f1; --head-muted:#8299a0;
+  --good:#0ca30c; --good-ink:#3fc13f; --warn:#fab219; --warn-ink:#f2c55c; --bad:#d03b3b; --bad-ink:#ef7a7a;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--head)}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono);font-size:12.5px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--head);color:var(--head-ink);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding-block:10px}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.brand span{color:var(--head-muted);font-size:12.5px}
+.tabs{display:flex;gap:2px;overflow-x:auto;max-width:100%}
+.tab{background:none;border:0;color:var(--head-muted);padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:500;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.tab:hover{color:var(--head-ink);background:rgba(255,255,255,.06)}
+.tab[aria-selected="true"]{color:var(--head-ink);background:rgba(255,255,255,.12)}
+.badge{background:var(--warn);color:#14181b;border-radius:10px;font-size:11px;font-weight:700;padding:1px 7px;min-width:20px;text-align:center}
+.badge[data-zero]{display:none}
+
+main{max-width:1280px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+section.view{display:flex;flex-direction:column;gap:16px}
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--line);padding:9px 14px;border-radius:var(--r);font-size:13px;color:var(--ink-2)}
+.banner b{color:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-size:15px;font-weight:600;letter-spacing:-.005em}
+.sub{color:var(--muted);font-size:12.5px}
+.eyebrow{text-transform:uppercase;letter-spacing:.07em;font-size:11px;color:var(--muted);font-weight:600}
+
+/* controls */
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:2px}
+.seg button{border:0;background:none;padding:5px 11px;border-radius:5px;cursor:pointer;color:var(--ink-2);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button:hover:not([aria-pressed="true"]){background:var(--hover)}
+select,input[type=text],input[type=number],input[type=month],input:not([type]){background:var(--panel);border:1px solid var(--axis);border-radius:6px;padding:6px 9px;min-width:0}
+select{padding-right:6px}
+.btn{border:1px solid var(--axis);background:var(--panel);border-radius:6px;padding:7px 13px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.small{padding:4px 9px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.link{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-weight:500;text-decoration:underline;text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.spacer{flex:1}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.kpi .v{font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+.kpi .d{font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.up{color:var(--good-ink);font-weight:600}.down{color:var(--bad-ink);font-weight:600}
+.meter{position:relative;height:8px;background:var(--hover);border-radius:4px;margin-top:4px}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--accent)}
+.meter b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid currentColor;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.good{color:var(--good-ink)}.pill.warn{color:var(--warn-ink)}.pill.bad{color:var(--bad-ink)}.pill.neutral{color:var(--muted)}
+
+.row2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px}
+@media (max-width:980px){.row2{grid-template-columns:minmax(0,1fr)}}
+
+/* bullet rows */
+.bul{display:flex;flex-direction:column;gap:4px}
+.brow{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) auto;gap:12px;align-items:center;padding:6px 6px;border-radius:6px;cursor:default}
+.brow:hover{background:var(--hover)}
+.who{display:flex;align-items:center;gap:8px;min-width:0}
+.who span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot{width:10px;height:10px;border-radius:3px;flex:none}
+.track{position:relative;height:18px}
+.track .bar{position:absolute;left:0;top:2px;bottom:2px;border-radius:0 4px 4px 0}
+.track .tgt{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);border-radius:1px}
+.track .base{position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--axis)}
+.bval{display:flex;gap:8px;align-items:center;justify-content:flex-end;min-width:150px}
+.bval .a{font-weight:600}
+.bval .t{color:var(--muted);font-size:12.5px}
+@media (max-width:560px){.brow{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}.brow .track{grid-column:1/-1;grid-row:2}.bval{min-width:0}}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);align-items:center}
+.legend .k{display:inline-flex;gap:6px;align-items:center}
+.legend .tk{width:2px;height:12px;background:var(--ink)}
+.legend .dash{width:16px;border-top:2px dashed var(--ink-2)}
+.lchip{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:3px 10px 3px 8px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.lchip[aria-pressed="false"]{opacity:.45}
+.lchip[aria-pressed="false"] .dot{background:transparent!important;outline:1.5px solid var(--muted);outline-offset:-1.5px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--font)}
+.empty{color:var(--muted);padding:28px 8px;text-align:center}
+
+/* customers */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:3px 10px;cursor:pointer;font-size:12.5px;display:inline-flex;gap:6px;align-items:center;color:var(--ink-2)}
+.chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);font-weight:600}
+.crow{display:grid;grid-template-columns:minmax(110px,190px) minmax(0,1fr) 128px;gap:10px;align-items:center;padding:4px 6px;border-radius:6px}
+.crow:hover{background:var(--hover)}
+.crow .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stack{display:flex;height:14px;gap:2px}
+.stack i{display:block;height:100%}
+.stack i:last-child{border-radius:0 4px 4px 0}
+.crow .val{text-align:right;display:flex;justify-content:flex-end;gap:8px}
+.crow .val .sh{color:var(--muted);width:42px;text-align:right}
+@media (max-width:520px){.crow{grid-template-columns:minmax(0,1fr) auto}.crow .stack{grid-column:1/-1;grid-row:2}}
+
+/* tables */
+.tablewrap{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;white-space:nowrap}
+td.r,th.r{text-align:right}
+tbody tr:hover{background:var(--hover)}
+tfoot td{font-weight:600;border-bottom:0;border-top:1.5px solid var(--axis)}
+.flag{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:4px;margin:1px 4px 1px 0;white-space:nowrap}
+.flag.dup{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad-ink)}
+.flag.big{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn-ink)}
+.flag.new{background:var(--accent-soft);color:var(--accent)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.rejectbox{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:color-mix(in srgb,var(--bad) 8%,var(--panel));border:1px solid color-mix(in srgb,var(--bad) 35%,var(--line));padding:10px;border-radius:6px;margin-bottom:12px}
+.rejectbox input{flex:1;min-width:220px}
+
+/* forms */
+.grid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-2);font-weight:500}
+.lines td{padding:5px 4px;border-bottom:0}
+.lines input{width:100%}
+.lines th{padding:4px}
+.formfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.msg{font-size:13px}
+.msg.ok{color:var(--good-ink)}.msg.err{color:var(--bad-ink)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed var(--axis);border-radius:var(--r);padding:26px 14px;text-align:center;cursor:pointer;color:var(--ink-2)}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.drop b{color:var(--accent)}
+.req{font-size:12.5px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.req code{font-family:var(--mono);font-size:12px;background:var(--hover);padding:1px 6px;border-radius:4px}
+.req code.must{background:var(--accent-soft);color:var(--accent);font-weight:500}
+tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
+.err-t{color:var(--bad-ink);font-size:12px}
+.tgt-tbl input{width:84px;text-align:right;padding:5px 6px}
+.tgt-tbl input.nm{width:150px;text-align:left}
+.tgt-tbl td{padding:4px 4px}
+
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.14);border-radius:8px;padding:9px 11px;font-size:12.5px;min-width:160px;max-width:280px}
+.tip .tt{font-weight:600;margin-bottom:5px}
+.tip .tr{display:flex;justify-content:space-between;gap:14px;align-items:center}
+.tip .tr span:first-child{display:flex;gap:6px;align-items:center;color:var(--ink-2)}
+.tip hr{border:0;border-top:1px solid var(--line);margin:5px 0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:13px;z-index:60;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:no-preference){.track .bar,.meter i,.stack i{transition:width .35s ease}}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><b>Hub Sales</b><span id="asof">Approved revenue · SGD</span></div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="dashboard" aria-selected="true">Dashboard</button>
+      <button class="tab" role="tab" data-tab="submit" aria-selected="false">Submit sales</button>
+      <button class="tab" role="tab" data-tab="review" aria-selected="false">Finance review <span class="badge" id="pendBadge" data-zero>0</span></button>
+      <button class="tab" role="tab" data-tab="targets" aria-selected="false">Targets &amp; team</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div id="banners"></div>
+
+  <!-- DASHBOARD -->
+  <section class="view" id="v-dashboard">
+    <div class="filters">
+      <select id="fYear" aria-label="Year"></select>
+      <div class="seg" id="fMode">
+        <button data-m="month" aria-pressed="false">Month</button>
+        <button data-m="quarter" aria-pressed="false">Quarter</button>
+        <button data-m="ytd" aria-pressed="true">Year to date</button>
+        <button data-m="year" aria-pressed="false">Full year</button>
+      </div>
+      <div id="fSel"></div>
+      <span class="spacer"></span>
+      <button class="btn" id="exportBtn">Export to Excel</button>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="panel">
+      <div class="ph">
+        <div><h2>Target vs actual by salesperson</h2><div class="sub" id="bulSub">—</div></div>
+        <div class="legend"><span class="k"><span class="dot" style="background:var(--muted)"></span>Actual (colour = salesperson)</span><span class="k"><span class="tk"></span>Target</span></div>
+      </div>
+      <div class="bul" id="bullets"></div>
+    </div>
+
+    <div class="row2">
+      <div class="panel">
+        <div class="ph">
+          <div><h2>Monthly revenue</h2><div class="sub" id="trendSub">—</div></div>
+          <div class="seg" id="trendMode"><button data-t="stack" aria-pressed="true">Company total</button><button data-t="lines" aria-pressed="false">Compare salespeople</button></div>
+        </div>
+        <div class="legend" id="trendLegend" style="margin-bottom:10px"></div>
+        <div class="chart" id="trend"></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div><h2>Where the revenue came from</h2><div class="sub" id="custSub">—</div></div></div>
+        <div class="chips" id="custChips"></div>
+        <div id="cust"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div><h2>Salesperson summary</h2><div class="sub" id="sumSub">—</div></div></div>
+      <div class="tablewrap"><table id="sumTbl"></table></div>
+    </div>
+  </section>
+
+  <!-- SUBMIT -->
+  <section class="view" id="v-submit" hidden>
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph"><div><h2>Submit sales</h2><div class="sub">Entries go to Finance for approval. They show on the dashboard once approved.</div></div></div>
+        <div class="filters" style="margin-bottom:12px">
+          <label class="field">Salesperson<select id="subRep"></select></label>
+        </div>
+        <div class="tablewrap"><table class="lines">
+          <thead><tr><th>Customer</th><th style="width:150px">Month</th><th style="width:140px">Revenue (SGD)</th><th>Note</th><th style="width:32px"></th></tr></thead>
+          <tbody id="subLines"></tbody>
+        </table></div>
+        <datalist id="custList"></datalist>
+        <div class="formfoot">
+          <button class="btn small" id="addLine">+ Add line</button>
+          <span class="spacer"></span>
+          <span class="num" id="subTotal"></span>
+          <button class="btn primary" id="subSend">Send to Finance</button>
+        </div>
+        <div class="msg" id="subMsg" role="status"></div>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><div><h2>Import from Excel</h2><div class="sub">Bulk-load a month's figures. Imported rows also go to Finance first.</div></div></div>
+        <div class="req" style="margin-bottom:12px">Columns:
+          <code class="must">Customer</code><code class="must">Month</code><code>Salesperson</code><code>Revenue</code>
+          <button class="link" id="tplBtn">Download template</button>
+        </div>
+        <label class="drop" id="drop" for="impFile">
+          <span><b>Choose a file</b> or drop it here</span>
+          <span class="sub">.xlsx, .xls or .csv · first sheet is read</span>
+          <input type="file" id="impFile" accept=".xlsx,.xls,.csv">
+        </label>
+        <div id="impResult" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div><h2>Recent submissions</h2><div class="sub">Status of the latest 20 entries</div></div></div>
+      <div class="tablewrap"><table id="recentTbl"></table></div>
+    </div>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="view" id="v-review" hidden>
+    <div class="panel">
+      <div class="ph"><div><h2>Awaiting approval</h2><div class="sub" id="revSub">—</div></div></div>
+      <div class="toolbar">
+        <select id="revRep" aria-label="Filter by salesperson"></select>
+        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="revAll"> Select all shown</label>
+        <span class="sub" id="revCount"></span>
+        <span class="spacer"></span>
+        <button class="btn primary" id="revApprove" disabled>Approve selected</button>
+        <button class="btn" id="revReject" disabled>Reject selected…</button>
+      </div>
+      <div class="rejectbox" id="rejBox" hidden>
+        <input id="rejReason" placeholder="Reason, shown to the salesperson (required)">
+        <button class="btn danger" id="rejConfirm">Reject</button>
+        <button class="btn" id="rejCancel">Cancel</button>
+      </div>
+      <div class="tablewrap"><table id="revTbl"></table></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div><h2>Recently reviewed</h2><div class="sub">Reopen an entry to send it back to the queue</div></div></div>
+      <div class="tablewrap"><table id="doneTbl"></table></div>
+    </div>
+  </section>
+
+  <!-- TARGETS -->
+  <section class="view" id="v-targets" hidden>
+    <div class="panel">
+      <div class="ph"><div><h2>Monthly targets</h2><div class="sub">Type an annual figure to spread it evenly across the 12 months, or edit single months.</div></div></div>
+      <div class="toolbar">
+        <label class="field" style="flex-direction:row;align-items:center;gap:8px">Year <select id="tgtYear"></select></label>
+        <span class="spacer"></span>
+        <span class="msg" id="tgtMsg"></span>
+        <button class="btn" id="tgtUndo" disabled>Discard changes</button>
+        <button class="btn primary" id="tgtSave" disabled>Save targets</button>
+      </div>
+      <div class="tablewrap"><table class="tgt-tbl" id="tgtTbl"></table></div>
+      <div class="formfoot">
+        <input id="newRep" placeholder="New salesperson's name" style="width:240px">
+        <button class="btn" id="addRep">Add salesperson</button>
+        <span class="msg" id="repMsg"></span>
+      </div>
+    </div>
+    <div class="panel" id="samplePanel" hidden>
+      <div class="ph"><div><h2>Sample data</h2><div class="sub">The salespeople, customers and figures loaded now are made up so you can try the dashboard.</div></div></div>
+      <div class="formfoot" style="margin-top:0">
+        <button class="btn" id="clearSample">Clear sample data…</button>
+        <span id="clearConfirm" hidden>Removes every entry, target and salesperson. <button class="btn danger small" id="clearYes">Yes, clear everything</button> <button class="btn small" id="clearNo">Cancel</button></span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="tip" id="tip" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="/shim.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const NOW=new Date(), CUR_Y=NOW.getFullYear(), CUR_M=NOW.getMonth()+1;
+const pad=n=>String(n).padStart(2,'0');
+const ym=(y,m)=>y+'-'+pad(m);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=new Intl.NumberFormat('en-SG',{maximumFractionDigits:0});
+const money=n=>(n<0?'−':'')+'S$'+nf.format(Math.abs(Math.round(n||0)));
+function compact(n){n=n||0;const a=Math.abs(n),s=n<0?'−':'';if(a>=1e6)return s+'S$'+(a/1e6).toFixed(a>=1e7?1:2)+'M';if(a>=1e4)return s+'S$'+Math.round(a/1e3)+'K';if(a>=1e3)return s+'S$'+(a/1e3).toFixed(1)+'K';return s+'S$'+Math.round(a)}
+const mLabel=m=>{const[y,mm]=m.split('-');return MON[+mm-1]+' '+y};
+const pct=x=>isFinite(x)?(x*100).toFixed(x>=10?0:1).replace(/\.0$/,'')+'%':'—';
+const fmtDate=iso=>{if(!iso)return '—';const d=new Date(iso);if(isNaN(d))return '—';return d.toLocaleDateString('en-SG',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'})};
+const newId=()=>'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+const S={reps:{},targets:{},months:{},meta:{},loaded:false,db:null,dl:null,canWrite:true,dbState:'loading'};
+const UI={tab:'dashboard',year:CUR_Y,mode:'ytd',sel:null,trend:'stack',custRep:'all',custAll:false,hidden:new Set(),revRep:'all',revSel:new Set(),tgtDirty:false,tgtYear:CUR_Y,imp:null};
+
+/* ---------- toast & tooltip ---------- */
+let toastT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200)}
+const tip=$('#tip');
+function showTip(ev,html){tip.innerHTML=html;tip.hidden=false;const pad=12,w=tip.offsetWidth,h=tip.offsetHeight;let x=ev.clientX+14,y=ev.clientY+14;if(x+w>innerWidth-pad)x=ev.clientX-w-14;if(x<pad)x=pad;if(y+h>innerHeight-pad)y=ev.clientY-h-14;if(y<pad)y=pad;tip.style.left=x+'px';tip.style.top=y+'px'}
+function hideTip(){tip.hidden=true}
+const tipRow=(label,val,color)=>`<div class="tr"><span>${color?`<span class="dot" style="background:${color}"></span>`:''}${esc(label)}</span><b class="num">${esc(val)}</b></div>`;
+
+/* ---------- data helpers ---------- */
+function repsSorted(){return Object.entries(S.reps).filter(([,r])=>r&&r.name).map(([id,r])=>({id,name:r.name,order:+r.order||0})).sort((a,b)=>a.order-b.order||a.name.localeCompare(b.name))}
+function repColor(id){const r=S.reps[id];const list=repsSorted();const i=list.findIndex(x=>x.id===id);return `var(--s${((i<0?0:i)%8)+1})`}
+const repName=id=>(S.reps[id]&&S.reps[id].name)||'Unknown';
+function allEntries(){const out=[];for(const m in S.months){const es=S.months[m]||{};for(const id in es){const e=es[id];if(e&&typeof e==='object'&&e.repId)out.push(Object.assign({},e,{id,month:m,amount:+e.amount||0}))}}return out}
+const approved=()=>allEntries().filter(e=>e.status==='approved');
+const pending=()=>allEntries().filter(e=>e.status==='pending');
+function ytdLast(y){return y<CUR_Y?12:y>CUR_Y?0:CUR_M}
+function periodMonths(y,mode,sel){
+  if(mode==='month')return [ym(y,sel)];
+  if(mode==='quarter')return [1,2,3].map(i=>ym(y,(sel-1)*3+i));
+  const last=mode==='ytd'?ytdLast(y):12;const a=[];for(let m=1;m<=last;m++)a.push(ym(y,m));return a}
+function prevPeriod(y,mode,sel){
+  if(mode==='month'){let m=sel-1,yy=y;if(m<1){m=12;yy--}return {months:[ym(yy,m)],label:MON[m-1]+' '+yy}}
+  if(mode==='quarter'){let q=sel-1,yy=y;if(q<1){q=4;yy--}return {months:periodMonths(yy,'quarter',q),label:'Q'+q+' '+yy}}
+  if(mode==='ytd'){const last=ytdLast(y);return {months:periodMonths(y-1,'ytd',0).slice(0,0).concat(Array.from({length:last},(_,i)=>ym(y-1,i+1))),label:(last?('Jan–'+MON[last-1]+' '):'')+(y-1)}}
+  return {months:periodMonths(y-1,'year'),label:String(y-1)}}
+function periodLabel(y,mode,sel){
+  if(mode==='month')return MON[sel-1]+' '+y;
+  if(mode==='quarter')return 'Q'+sel+' '+y;
+  if(mode==='ytd'){const l=ytdLast(y);return l?('Jan–'+MON[l-1]+' '+y+' (year to date)'):String(y)}
+  return 'Full year '+y}
+function agg(months){const set=new Set(months);const rep={},cust={};let total=0;
+  for(const e of approved()){if(!set.has(e.month))continue;total+=e.amount;
+    const r=rep[e.repId]||(rep[e.repId]={total:0,custs:{}});r.total+=e.amount;r.custs[e.customer]=(r.custs[e.customer]||0)+e.amount;
+    const c=cust[e.customer]||(cust[e.customer]={total:0,byRep:{}});c.total+=e.amount;c.byRep[e.repId]=(c.byRep[e.repId]||0)+e.amount}
+  return {rep,cust,total}}
+function targetFor(repId,months){const t=S.targets[repId]||{};return months.reduce((s,m)=>s+(+t[m]||0),0)}
+function status(att){if(!isFinite(att))return ['neutral','No target'];if(att>=1)return ['good','On target'];if(att>=.9)return ['warn','Close'];return ['bad','Behind']}
+function yearsAvailable(){const ys=new Set([CUR_Y,UI.year]);for(const m in S.months)ys.add(+m.slice(0,4));for(const r in S.targets)for(const m in (S.targets[r]||{}))ys.add(+m.slice(0,4));return [...ys].filter(Boolean).sort()}
+
+/* ---------- writes ---------- */
+async function patchDoc(path,patch,initial){const ref=S.db.doc(path);
+  try{await ref.update(patch)}catch(err){if(err&&err.code==='invalid_argument'){const snap=await ref.get();if(!snap.exists){await ref.set(Object.assign({},initial||{},patch));return}}throw err}}
+async function writeEntries(byMonth){for(const m of Object.keys(byMonth).sort()){await patchDoc('months/'+m,{entries:byMonth[m]},{month:m})}}
+function groupByMonth(list,fn){const o={};for(const e of list){(o[e.month]||(o[e.month]={}))[e.id]=fn(e)}return o}
+function writeErr(err){console.error(err);const c=err&&err.code;
+  if(c==='invalid_argument'){S.canWrite=false;renderBanners();toast("You have view-only access, so this change wasn't saved.")}
+  else if(c==='quota_exceeded')toast('Storage is full. Ask the owner to archive older data.');
+  else toast("Couldn't save. Check your connection and try again.")}
+
+/* ---------- tabs ---------- */
+function setTab(t){if(!['dashboard','submit','review','targets'].includes(t))t='dashboard';UI.tab=t;
+  $$('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  $$('section.view').forEach(s=>s.hidden=s.id!=='v-'+t);hideTip();
+  if(location.hash.slice(1)!==t){try{history.replaceState(null,'','#'+t)}catch(e){location.hash=t}}
+  if(t==='dashboard')renderDashboard()}
+$$('.tab').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+addEventListener('hashchange',()=>setTab(location.hash.slice(1)));
+
+/* ---------- banners ---------- */
+function renderBanners(){const b=[];
+  if(S.dbState==='none')b.push(`<div class="banner"><b>Not connected to the shared data store.</b> Check your connection and reload the page.</div>`);
+  else if(!S.canWrite)b.push(`<div class="banner"><b>View only.</b> You can see the dashboard but not submit, approve or change targets.</div>`);
+  if(S.meta&&S.meta.sample)b.push(`<div class="banner"><b>Sample data.</b> These salespeople, customers and figures are made up. Clear them under <button class="link" data-goto="targets">Targets &amp; team</button> when you're ready to start.</div>`);
+  $('#banners').innerHTML=b.join('');$$('[data-goto]').forEach(x=>x.onclick=()=>setTab(x.dataset.goto))}
+
+/* ---------- dashboard ---------- */
+function renderFilters(){
+  const ys=yearsAvailable();$('#fYear').innerHTML=ys.map(y=>`<option value="${y}"${y===UI.year?' selected':''}>${y}</option>`).join('');
+  $$('#fMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===UI.mode)));
+  const fs=$('#fSel');
+  if(UI.mode==='month'){if(!UI.sel||UI.sel>12)UI.sel=UI.year===CUR_Y?CUR_M:12;
+    fs.innerHTML=`<select id="fMonth" aria-label="Month">${MON.map((m,i)=>`<option value="${i+1}"${i+1===UI.sel?' selected':''}>${m}</option>`).join('')}</select>`;
+    $('#fMonth').onchange=e=>{UI.sel=+e.target.value;renderDashboard()}}
+  else if(UI.mode==='quarter'){if(!UI.sel||UI.sel>4)UI.sel=UI.year===CUR_Y?Math.ceil(CUR_M/3):4;
+    fs.innerHTML=`<div class="seg">${[1,2,3,4].map(q=>`<button data-q="${q}" aria-pressed="${q===UI.sel}">Q${q}</button>`).join('')}</div>`;
+    $$('#fSel button').forEach(b=>b.onclick=()=>{UI.sel=+b.dataset.q;renderDashboard()})}
+  else fs.innerHTML=''}
+$('#fYear').onchange=e=>{UI.year=+e.target.value;renderDashboard()};
+$$('#fMode button').forEach(b=>b.onclick=()=>{if(UI.mode!==b.dataset.m){UI.mode=b.dataset.m;UI.sel=null}renderDashboard()});
+$$('#trendMode button').forEach(b=>b.onclick=()=>{UI.trend=b.dataset.t;$$('#trendMode button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderTrend()});
+
+function renderDashboard(){
+  renderFilters();
+  const reps=repsSorted();
+  const months=periodMonths(UI.year,UI.mode,UI.sel);const label=periodLabel(UI.year,UI.mode,UI.sel);
+  const cur=agg(months);const pv=prevPeriod(UI.year,UI.mode,UI.sel);const prev=agg(pv.months);
+  const tTotal=reps.reduce((s,r)=>s+targetFor(r.id,months),0);
+  const pend=pending();const pendAmt=pend.reduce((s,e)=>s+e.amount,0);
+  const delta=prev.total?(cur.total-prev.total)/prev.total:NaN;
+  const att=tTotal?cur.total/tTotal:NaN;const [sc,st]=status(att);
+  const onT=reps.filter(r=>{const t=targetFor(r.id,months);return t&&((cur.rep[r.id]||{}).total||0)>=t}).length;
+  const withT=reps.filter(r=>targetFor(r.id,months)>0).length;
+  if(!S.loaded){$('#kpis').innerHTML=`<div class="kpi"><div class="eyebrow">Loading</div><div class="sub">Fetching approved sales…</div></div>`;return}
+  $('#kpis').innerHTML=`
+   <div class="kpi"><div class="eyebrow">Company revenue</div><div class="v num">${compact(cur.total)}</div>
+     <div class="d">${isFinite(delta)?`<span class="${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${pct(Math.abs(delta))}</span> vs ${esc(pv.label)}`:`No approved sales in ${esc(pv.label)}`}</div></div>
+   <div class="kpi"><div class="eyebrow">Target attainment</div><div class="v num">${tTotal?pct(att):'—'}</div>
+     <div class="meter" title="Company target"><i style="width:${Math.min(100,(att||0)*100/1.25)}%"></i><b style="left:${100/1.25}%"></b></div>
+     <div class="d">${tTotal?`<span class="pill ${sc}">${st}</span> ${compact(cur.total)} of ${compact(tTotal)}`:'No targets set for this period'}</div></div>
+   <div class="kpi"><div class="eyebrow">Salespeople on target</div><div class="v num">${withT?onT+' <span style="font-size:18px;color:var(--muted)">of '+withT+'</span>':'—'}</div>
+     <div class="d">${withT?(onT===withT?'Everyone has hit target':`${withT-onT} still below target`):'Set targets under Targets & team'}</div></div>
+   <div class="kpi"><div class="eyebrow">Waiting for Finance</div><div class="v num">${pend.length}</div>
+     <div class="d">${pend.length?`${compact(pendAmt)} not counted yet · <button class="link" data-goto="review">Review</button>`:'Nothing waiting'}</div></div>`;
+  $$('#kpis [data-goto]').forEach(x=>x.onclick=()=>setTab(x.dataset.goto));
+
+  // bullets
+  $('#bulSub').textContent=label+' · bars sorted by revenue';
+  if(!reps.length){$('#bullets').innerHTML=`<div class="empty">No salespeople yet. Add your team under <button class="link" data-goto="targets">Targets &amp; team</button>.</div>`;$$('#bullets [data-goto]').forEach(x=>x.onclick=()=>setTab('targets'))}
+  else{
+    const rows=reps.map(r=>({...r,a:(cur.rep[r.id]||{}).total||0,t:targetFor(r.id,months),p:(prev.rep[r.id]||{}).total||0})).sort((a,b)=>b.a-a.a);
+    const max=Math.max(1,...rows.map(r=>Math.max(r.a,r.t)))*1.04;
+    $('#bullets').innerHTML=rows.map(r=>{const at=r.t?r.a/r.t:NaN;const[c,s]=status(at);
+      return `<div class="brow" data-rep="${esc(r.id)}"><div class="who"><span class="dot" style="background:${repColor(r.id)}"></span><span>${esc(r.name)}</span></div>
+      <div class="track"><span class="base"></span><span class="bar" style="width:${r.a/max*100}%;background:${repColor(r.id)}"></span>${r.t?`<span class="tgt" style="left:calc(${r.t/max*100}% - 1px)"></span>`:''}</div>
+      <div class="bval num"><span class="a">${compact(r.a)}</span><span class="t">/ ${r.t?compact(r.t):'—'}</span><span class="pill ${c}">${r.t?pct(at):s}</span></div></div>`}).join('');
+    $$('#bullets .brow').forEach(el=>{const r=rows.find(x=>x.id===el.dataset.rep);
+      el.onmousemove=ev=>{const top=Object.entries((cur.rep[r.id]||{}).custs||{}).sort((a,b)=>b[1]-a[1]).slice(0,3);
+        showTip(ev,`<div class="tt">${esc(r.name)}</div>${tipRow('Actual',money(r.a))}${tipRow('Target',r.t?money(r.t):'Not set')}${tipRow('Gap to target',r.t?money(r.a-r.t):'—')}${tipRow(pv.label,money(r.p))}${top.length?'<hr><div class="sub" style="margin-bottom:3px">Top customers</div>'+top.map(([n,v])=>tipRow(n,compact(v))).join(''):''}`)};
+      el.onmouseleave=hideTip;el.style.cursor='pointer';el.onclick=()=>{UI.custRep=r.id;UI.custAll=false;renderCustomers(cur,label)}})}
+  renderCustomers(cur,label);renderSummary(cur,prev,months,label,pv);renderTrend()}
+
+function renderCustomers(cur,label){
+  const reps=repsSorted();
+  $('#custChips').innerHTML=`<button class="chip" data-r="all" aria-pressed="${UI.custRep==='all'}">All salespeople</button>`+reps.map(r=>`<button class="chip" data-r="${esc(r.id)}" aria-pressed="${UI.custRep===r.id}"><span class="dot" style="background:${repColor(r.id)}"></span>${esc(r.name)}</button>`).join('');
+  $$('#custChips .chip').forEach(b=>b.onclick=()=>{UI.custRep=b.dataset.r;UI.custAll=false;renderCustomers(cur,label)});
+  let list=Object.entries(cur.cust).map(([n,c])=>({n,total:UI.custRep==='all'?c.total:(c.byRep[UI.custRep]||0),byRep:c.byRep})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+  const base=list.reduce((s,x)=>s+x.total,0);
+  $('#custSub').textContent=label+' · '+list.length+' customer'+(list.length===1?'':'s')+(UI.custRep==='all'?'':' for '+repName(UI.custRep));
+  if(!list.length){$('#cust').innerHTML=`<div class="empty">No approved revenue in this period.</div>`;return}
+  const max=list[0].total;const shown=UI.custAll?list:list.slice(0,10);
+  $('#cust').innerHTML=shown.map((c,i)=>{const segs=UI.custRep==='all'?reps.filter(r=>c.byRep[r.id]).map(r=>`<i style="width:${c.byRep[r.id]/max*100}%;background:${repColor(r.id)}"></i>`).join(''):`<i style="width:${c.total/max*100}%;background:${repColor(UI.custRep)}"></i>`;
+    return `<div class="crow" data-i="${i}"><span class="nm">${esc(c.n)}</span><span class="stack">${segs}</span><span class="val num"><b>${compact(c.total)}</b><span class="sh">${pct(c.total/base)}</span></span></div>`}).join('')+
+    (list.length>10?`<div style="margin-top:8px"><button class="link" id="custMore">${UI.custAll?'Show top 10':'Show all '+list.length+' customers'}</button></div>`:'');
+  $$('#cust .crow').forEach(el=>{const c=shown[+el.dataset.i];el.onmousemove=ev=>showTip(ev,`<div class="tt">${esc(c.n)}</div>`+reps.filter(r=>c.byRep[r.id]).map(r=>tipRow(r.name,money(c.byRep[r.id]),repColor(r.id))).join('')+`<hr>${tipRow('Share of '+(UI.custRep==='all'?'company':repName(UI.custRep)),pct(c.total/base))}`);el.onmouseleave=hideTip});
+  const more=$('#custMore');if(more)more.onclick=()=>{UI.custAll=!UI.custAll;renderCustomers(cur,label)}}
+
+function renderSummary(cur,prev,months,label,pv){
+  const reps=repsSorted();$('#sumSub').textContent=label+' · change compared with '+pv.label;
+  if(!reps.length){$('#sumTbl').innerHTML='';return}
+  let T={a:0,t:0,p:0};
+  const rows=reps.map(r=>{const a=(cur.rep[r.id]||{}).total||0,t=targetFor(r.id,months),p=(prev.rep[r.id]||{}).total||0;T.a+=a;T.t+=t;T.p+=p;
+    const cs=Object.entries((cur.rep[r.id]||{}).custs||{}).sort((x,y)=>y[1]-x[1]);const at=t?a/t:NaN;const[c,s]=status(at);const d=p?(a-p)/p:NaN;
+    return `<tr><td><span class="who"><span class="dot" style="background:${repColor(r.id)}"></span>${esc(r.name)}</span></td><td class="r num">${money(a)}</td><td class="r num">${t?money(t):'—'}</td><td class="r num">${t?money(a-t):'—'}</td><td><span class="pill ${c}">${t?pct(at):s}</span></td><td class="r num">${isFinite(d)?`<span class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${pct(Math.abs(d))}</span>`:'—'}</td><td class="r num">${cs.length}</td><td>${cs[0]?esc(cs[0][0])+` <span class="sub num">${compact(cs[0][1])}</span>`:'—'}</td></tr>`}).join('');
+  const tat=T.t?T.a/T.t:NaN,td=T.p?(T.a-T.p)/T.p:NaN;
+  $('#sumTbl').innerHTML=`<thead><tr><th>Salesperson</th><th class="r">Actual</th><th class="r">Target</th><th class="r">Gap</th><th>Attainment</th><th class="r">vs ${esc(pv.label)}</th><th class="r">Customers</th><th>Top customer</th></tr></thead><tbody>${rows}</tbody>
+   <tfoot><tr><td>Company total</td><td class="r num">${money(T.a)}</td><td class="r num">${T.t?money(T.t):'—'}</td><td class="r num">${T.t?money(T.a-T.t):'—'}</td><td>${T.t?`<span class="pill ${status(tat)[0]}">${pct(tat)}</span>`:''}</td><td class="r num">${isFinite(td)?`<span class="${td>=0?'up':'down'}">${td>=0?'▲':'▼'} ${pct(Math.abs(td))}</span>`:'—'}</td><td class="r num">${Object.keys(cur.cust).length}</td><td></td></tr></tfoot>`}
+
+function niceMax(v){if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v)));const f=v/e;const n=f<=1?1:f<=1.5?1.5:f<=2?2:f<=2.5?2.5:f<=3?3:f<=4?4:f<=5?5:f<=6?6:f<=8?8:10;return n*e}
+function renderTrend(){
+  const el=$('#trend');const reps=repsSorted();const y=UI.year;const sel=new Set(periodMonths(y,UI.mode,UI.sel));
+  const lastM=ytdLast(y)||12;
+  // legend
+  $('#trendLegend').innerHTML=reps.map(r=>`<button class="lchip" data-r="${esc(r.id)}" aria-pressed="${!UI.hidden.has(r.id)}"><span class="dot" style="background:${repColor(r.id)}"></span>${esc(r.name)}</button>`).join('')+(UI.trend==='stack'?'<span class="k"><span class="dash"></span>Company target</span>':'');
+  $$('#trendLegend .lchip').forEach(b=>b.onclick=()=>{const id=b.dataset.r;UI.hidden.has(id)?UI.hidden.delete(id):UI.hidden.add(id);renderTrend()});
+  $('#trendSub').textContent=y+(UI.trend==='stack'?' · stacked by salesperson; selected period highlighted':' · one line per salesperson');
+  const vis=reps.filter(r=>!UI.hidden.has(r.id));
+  const data=Array.from({length:12},(_,i)=>{const m=ym(y,i+1);const o={m,byRep:{},total:0,target:0};for(const r of vis)o.target+=+((S.targets[r.id]||{})[m])||0;return o});
+  for(const e of approved()){if(!e.month.startsWith(y+'-'))continue;if(UI.hidden.has(e.repId))continue;const d=data[+e.month.slice(5)-1];d.byRep[e.repId]=(d.byRep[e.repId]||0)+e.amount;d.total+=e.amount}
+  const W=Math.max(280,el.clientWidth||600),H=W<480?220:270,ml=50,mr=8,mt=10,mb=26;const iw=W-ml-mr,ih=H-mt-mb;
+  const isStack=UI.trend==='stack';
+  const maxV=isStack?Math.max(...data.map(d=>Math.max(d.total,d.target))):Math.max(0,...data.flatMap(d=>Object.values(d.byRep)));
+  if(!maxV){el.innerHTML='<div class="empty">No approved revenue in '+y+'.</div>';return}
+  const top=niceMax(maxV*1.05);const Y=v=>mt+ih-(v/top)*ih;const bw=iw/12;const X=i=>ml+i*bw;
+  let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Monthly revenue ${y}">`;
+  for(let k=0;k<=4;k++){const v=top*k/4,yy=Y(v);s+=`<line x1="${ml}" x2="${W-mr}" y1="${yy}" y2="${yy}" style="stroke:var(${k?'--line':'--axis'})" stroke-width="1"/><text x="${ml-6}" y="${yy+3.5}" text-anchor="end" class="num">${compact(v).replace('S$','')}</text>`}
+  data.forEach((d,i)=>{s+=`<text x="${X(i)+bw/2}" y="${H-8}" text-anchor="middle" style="${sel.has(d.m)?'fill:var(--ink);font-weight:600':''}">${W<480?MON[i][0]:MON[i]}</text>`});
+  if(isStack){
+    const cw=Math.min(38,bw*0.62);
+    data.forEach((d,i)=>{let acc=0;const op=sel.has(d.m)?1:.38;const x=X(i)+(bw-cw)/2;const segs=vis.filter(r=>d.byRep[r.id]);
+      segs.forEach((r,j)=>{const v=d.byRep[r.id];const y0=Y(acc),y1=Y(acc+v);acc+=v;const hgt=Math.max(0,y0-y1-(j<segs.length-1?2:0));const yTop=y0-hgt-(0);
+        if(j===segs.length-1){const rr=Math.min(4,hgt,cw/2);s+=`<path d="M${x},${y0}V${yTop+rr}Q${x},${yTop} ${x+rr},${yTop}H${x+cw-rr}Q${x+cw},${yTop} ${x+cw},${yTop+rr}V${y0}Z" style="fill:${repColor(r.id)}" opacity="${op}"/>`}
+        else s+=`<rect x="${x}" y="${y0-hgt}" width="${cw}" height="${hgt}" style="fill:${repColor(r.id)}" opacity="${op}"/>`})});
+    // target step
+    let p='';data.forEach((d,i)=>{if(!d.target)return;const yy=Y(d.target);p+=`M${X(i)+2},${yy}H${X(i)+bw-2}`});
+    if(p)s+=`<path d="${p}" fill="none" style="stroke:var(--ink-2)" stroke-width="2" stroke-dasharray="4 3"/>`;
+  }else{
+    vis.forEach(r=>{let pts=[];data.forEach((d,i)=>{if(i<lastM)pts.push([X(i)+bw/2,Y(d.byRep[r.id]||0),sel.has(d.m)])});
+      if(!pts.length)return;s+=`<path d="M${pts.map(p=>p[0]+','+p[1]).join('L')}" fill="none" style="stroke:${repColor(r.id)}" stroke-width="2" stroke-linejoin="round"/>`;
+      pts.forEach(p=>{s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${p[2]?4:3}" style="fill:${repColor(r.id)};stroke:var(--panel)" stroke-width="1.5"/>`})});
+  }
+  s+=`<line id="xh" x1="0" x2="0" y1="${mt}" y2="${mt+ih}" style="stroke:var(--axis)" stroke-width="1" visibility="hidden"/>`;
+  data.forEach((d,i)=>{s+=`<rect class="hit" data-i="${i}" x="${X(i)}" y="${mt}" width="${bw}" height="${ih}" fill="transparent"/>`});
+  s+='</svg>';el.innerHTML=s;
+  const xh=el.querySelector('#xh');
+  $$('.hit',el).forEach(h=>{const d=data[+h.dataset.i];
+    h.onmousemove=ev=>{const cx=X(+h.dataset.i)+bw/2;xh.setAttribute('x1',cx);xh.setAttribute('x2',cx);xh.setAttribute('visibility',isStack?'hidden':'visible');
+      const rows=vis.filter(r=>d.byRep[r.id]||!isStack).sort((a,b)=>(d.byRep[b.id]||0)-(d.byRep[a.id]||0)).map(r=>tipRow(r.name,compact(d.byRep[r.id]||0),repColor(r.id))).join('');
+      showTip(ev,`<div class="tt">${mLabel(d.m)}</div>${rows||'<div class="sub">No approved revenue</div>'}<hr>${tipRow('Total',money(d.total))}${d.target?tipRow('Target',money(d.target))+tipRow('Attainment',pct(d.total/d.target)):''}`)};
+    h.onmouseleave=()=>{hideTip();xh.setAttribute('visibility','hidden')}})}
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(UI.tab==='dashboard')renderTrend()},120)});
+
+/* ---------- export ---------- */
+$('#exportBtn').onclick=async()=>{
+  if(typeof XLSX==='undefined'){toast("The Excel library didn't load. Reload the page and try again.");return}
+  const reps=repsSorted(),y=UI.year,months=periodMonths(y,UI.mode,UI.sel),label=periodLabel(y,UI.mode,UI.sel),pv=prevPeriod(y,UI.mode,UI.sel);
+  const cur=agg(months),prev=agg(pv.months);const wb=XLSX.utils.book_new();
+  const sum=[['Hub Sales export'],['Period',label],['Figures','Finance-approved revenue, SGD'],['Exported',new Date().toLocaleString('en-SG')],[],['Salesperson','Revenue','Target','Gap to target','Attainment','Previous period ('+pv.label+')','Change','Customers']];
+  let T=[0,0,0];reps.forEach(r=>{const a=(cur.rep[r.id]||{}).total||0,t=targetFor(r.id,months),p=(prev.rep[r.id]||{}).total||0;T[0]+=a;T[1]+=t;T[2]+=p;
+    sum.push([r.name,a,t||null,t?a-t:null,t?a/t:null,p,p?(a-p)/p:null,Object.keys((cur.rep[r.id]||{}).custs||{}).length])});
+  sum.push(['Company total',T[0],T[1]||null,T[1]?T[0]-T[1]:null,T[1]?T[0]/T[1]:null,T[2],T[2]?(T[0]-T[2])/T[2]:null,Object.keys(cur.cust).length]);
+  const ws1=XLSX.utils.aoa_to_sheet(sum);fmtSheet(ws1,6,{1:'#,##0',2:'#,##0',3:'#,##0',4:'0.0%',5:'#,##0',6:'0.0%'});ws1['!cols']=[{wch:22},{wch:14},{wch:14},{wch:14},{wch:12},{wch:24},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+  const bc=[['Salesperson','Customer','Revenue','Share of salesperson']];reps.forEach(r=>{const rr=cur.rep[r.id];if(!rr)return;Object.entries(rr.custs).sort((a,b)=>b[1]-a[1]).forEach(([c,v])=>bc.push([r.name,c,v,v/rr.total]))});
+  const ws2=XLSX.utils.aoa_to_sheet(bc);fmtSheet(ws2,1,{2:'#,##0',3:'0.0%'});ws2['!cols']=[{wch:22},{wch:30},{wch:14},{wch:12}];XLSX.utils.book_append_sheet(wb,ws2,'By customer');
+  const mh=['Salesperson',...MON.map(m=>m+' '+y),'Total'];const mo=[['Actual revenue '+y],mh];const mt=[['Targets '+y],mh];
+  reps.forEach(r=>{const a=MON.map((_,i)=>approved().filter(e=>e.repId===r.id&&e.month===ym(y,i+1)).reduce((s,e)=>s+e.amount,0));mo.push([r.name,...a,a.reduce((s,v)=>s+v,0)]);
+    const t=MON.map((_,i)=>+((S.targets[r.id]||{})[ym(y,i+1)])||0);mt.push([r.name,...t,t.reduce((s,v)=>s+v,0)])});
+  const ws3=XLSX.utils.aoa_to_sheet(mo.concat([[]],mt));const nfm={};for(let c=1;c<=13;c++)nfm[c]='#,##0';fmtSheet(ws3,1,nfm);ws3['!cols']=[{wch:22}].concat(Array(13).fill({wch:11}));XLSX.utils.book_append_sheet(wb,ws3,'Monthly');
+  const set=new Set(months);const en=[['Month','Salesperson','Customer','Revenue','Source','Submitted','Approved','Note']];
+  approved().filter(e=>set.has(e.month)).sort((a,b)=>a.month.localeCompare(b.month)||repName(a.repId).localeCompare(repName(b.repId))).forEach(e=>en.push([mLabel(e.month),repName(e.repId),e.customer,e.amount,e.source==='import'?'Excel import':'Form',fmtDate(e.submittedAt),fmtDate(e.reviewedAt),e.note||'']));
+  const ws4=XLSX.utils.aoa_to_sheet(en);fmtSheet(ws4,1,{3:'#,##0'});ws4['!cols']=[{wch:10},{wch:22},{wch:30},{wch:12},{wch:12},{wch:16},{wch:16},{wch:30}];XLSX.utils.book_append_sheet(wb,ws4,'Approved entries');
+  const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const fname='Hub sales '+label.replace(/[^\w\s–-]/g,'').replace('–','-').trim()+'.xlsx';
+  await save(fname,buf)};
+function fmtSheet(ws,fromRow,fmts){const rg=XLSX.utils.decode_range(ws['!ref']);for(let R=fromRow;R<=rg.e.r;R++)for(const C in fmts){const c=ws[XLSX.utils.encode_cell({r:R,c:+C})];if(c&&c.t==='n')c.z=fmts[C]}}
+async function save(filename,buf){
+  if(!S.dl){toast("Downloads aren't available in this view.");return}
+  try{await S.dl.save({filename,data:new Blob([buf])});toast('Saved '+filename)}
+  catch(err){const c=err&&err.code;if(c==='declined')return;if(c==='rate_limited')toast('A download prompt is already open.');else toast("Couldn't create the download here.")}}
+
+/* ---------- submit ---------- */
+function repOptions(sel,withAll,allLabel){const reps=repsSorted();return (withAll?`<option value="all">${allLabel||'All salespeople'}</option>`:'<option value="">Choose…</option>')+reps.map(r=>`<option value="${esc(r.id)}"${r.id===sel?' selected':''}>${esc(r.name)}</option>`).join('')}
+function defaultMonth(){return ym(CUR_Y,CUR_M)}
+function addLine(prefill){const tr=document.createElement('tr');const n=$$('#subLines tr').length;
+  tr.innerHTML=`<td><input list="custList" class="c" placeholder="Customer name" aria-label="Customer"></td><td><input type="month" class="m" aria-label="Month"></td><td><input type="number" class="a num" min="0" step="any" placeholder="0" aria-label="Revenue"></td><td><input class="n" placeholder="Optional" aria-label="Note"></td><td><button class="btn small rm" aria-label="Remove line" title="Remove line">×</button></td>`;
+  const last=$$('#subLines tr').pop();tr.querySelector('.m').value=last?last.querySelector('.m').value:defaultMonth();
+  tr.querySelector('.rm').onclick=()=>{tr.remove();if(!$$('#subLines tr').length)addLine();subTotal()};
+  tr.querySelector('.a').oninput=subTotal;$('#subLines').appendChild(tr);return tr}
+function subTotal(){const t=$$('#subLines .a').reduce((s,i)=>s+(+i.value||0),0);$('#subTotal').textContent=t?'Total '+money(t):''}
+$('#addLine').onclick=()=>addLine().querySelector('.c').focus();
+for(let i=0;i<3;i++)addLine();
+$('#subSend').onclick=async()=>{
+  const msg=$('#subMsg');msg.className='msg';const rep=$('#subRep').value;
+  if(!S.db){msg.className='msg err';msg.textContent='Not connected to the shared data store.';return}
+  if(!rep){msg.className='msg err';msg.textContent='Choose the salesperson first.';$('#subRep').focus();return}
+  const lines=[],errs=[];$$('#subLines tr').forEach((tr,i)=>{const c=tr.querySelector('.c').value.trim(),m=tr.querySelector('.m').value,a=tr.querySelector('.a').value,n=tr.querySelector('.n').value.trim();
+    if(!c&&!a)return;if(!c)errs.push(`Line ${i+1}: add the customer name.`);else if(!/^\d{4}-\d{2}$/.test(m))errs.push(`Line ${i+1}: pick the month.`);else if(!(+a>0))errs.push(`Line ${i+1}: enter revenue above zero.`);else lines.push({c,m,a:+a,n})});
+  if(errs.length){msg.className='msg err';msg.textContent=errs[0];return}
+  if(!lines.length){msg.className='msg err';msg.textContent='Add at least one line with a customer and revenue.';return}
+  const now=new Date().toISOString(),batch=newId();const list=lines.map(l=>({id:newId(),month:l.m,repId:rep,customer:l.c,amount:Math.round(l.a*100)/100,status:'pending',source:'form',batch,submittedAt:now,note:l.n,reviewNote:''}));
+  const btn=$('#subSend');btn.disabled=true;
+  try{await writeEntries(groupByMonth(list,e=>{const o={...e};delete o.id;delete o.month;return o}));
+    $('#subLines').innerHTML='';for(let i=0;i<3;i++)addLine();subTotal();msg.className='msg ok';msg.textContent=`Sent ${list.length} entr${list.length===1?'y':'ies'} (${money(list.reduce((s,e)=>s+e.amount,0))}) to Finance.`}
+  catch(err){writeErr(err);msg.className='msg err';msg.textContent="Not sent. Your lines are still here."}
+  finally{btn.disabled=false}};
+
+function renderRecent(){const list=allEntries().sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).slice(0,20);
+  if(!list.length){$('#recentTbl').innerHTML=`<tbody><tr><td class="empty">No submissions yet.</td></tr></tbody>`;return}
+  $('#recentTbl').innerHTML=`<thead><tr><th>Submitted</th><th>Salesperson</th><th>Customer</th><th>Month</th><th class="r">Revenue</th><th>Status</th><th>Finance note</th></tr></thead><tbody>`+
+   list.map(e=>`<tr><td class="num">${fmtDate(e.submittedAt)}</td><td>${esc(repName(e.repId))}</td><td>${esc(e.customer)}</td><td>${mLabel(e.month)}</td><td class="r num">${money(e.amount)}</td><td>${statusPill(e.status)}</td><td class="sub">${esc(e.reviewNote||'')}</td></tr>`).join('')+'</tbody>'}
+function statusPill(s){return s==='approved'?'<span class="pill good">Approved</span>':s==='rejected'?'<span class="pill bad">Rejected</span>':'<span class="pill warn">With Finance</span>'}
+
+/* ---------- import ---------- */
+$('#tplBtn').onclick=async()=>{if(typeof XLSX==='undefined'){toast("The Excel library didn't load.");return}
+  const r=repsSorted()[0];const ws=XLSX.utils.aoa_to_sheet([['Salesperson','Customer','Month','Revenue (SGD)'],[r?r.name:'Salesperson name','Example Customer Pte Ltd',ym(CUR_Y,CUR_M),12500]]);ws['!cols']=[{wch:22},{wch:30},{wch:10},{wch:14}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Sales');await save('Hub sales import template.xlsx',XLSX.write(wb,{bookType:'xlsx',type:'array'}))};
+const drop=$('#drop');
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)readFile(f)});
+$('#impFile').onchange=e=>{const f=e.target.files[0];if(f)readFile(f);e.target.value=''};
+function readFile(f){if(typeof XLSX==='undefined'){toast("The Excel library didn't load.");return}
+  const rd=new FileReader();rd.onload=()=>{try{const wb=XLSX.read(new Uint8Array(rd.result),{type:'array',cellDates:true});UI.imp=parseWb(wb,f.name);renderImport()}catch(err){console.error(err);$('#impResult').innerHTML=`<div class="msg err">Couldn't read ${esc(f.name)}. Save it as .xlsx and try again.</div>`}};rd.readAsArrayBuffer(f)}
+function readMonth(v){
+  if(v instanceof Date&&!isNaN(v))return ym(v.getFullYear(),v.getMonth()+1);
+  if(typeof v==='number'){if(v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return ym(d.getUTCFullYear(),d.getUTCMonth()+1)}return null}
+  const s=String(v==null?'':v).trim();if(!s)return null;let m;
+  const mi=t=>{const i=MON.findIndex(x=>t.toLowerCase().startsWith(x.toLowerCase()));return i<0?0:i+1};
+  const yr=t=>{t=+t;return t<100?2000+t:t};
+  if((m=s.match(/^(\d{4})[-\/. ](\d{1,2})(?:[-\/. ]\d{1,2})?$/)))return +m[2]>=1&&+m[2]<=12?ym(+m[1],+m[2]):null;
+  if((m=s.match(/^(\d{1,2})[-\/. ](\d{4})$/)))return +m[1]>=1&&+m[1]<=12?ym(+m[2],+m[1]):null;
+  if((m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/)))return +m[2]>=1&&+m[2]<=12?ym(yr(m[3]),+m[2]):null;
+  if((m=s.match(/^([A-Za-z]{3,9})[\s\-\/,']*(\d{2}|\d{4})$/))&&mi(m[1]))return ym(yr(m[2]),mi(m[1]));
+  if((m=s.match(/^(\d{4})[\s\-\/]*([A-Za-z]{3,9})$/))&&mi(m[2]))return ym(+m[1],mi(m[2]));
+  if((m=s.match(/^(\d{1,2})[\s\-]([A-Za-z]{3,9})[\s\-](\d{2,4})$/))&&mi(m[2]))return ym(yr(m[3]),mi(m[2]));
+  return null}
+function readAmt(v){if(typeof v==='number')return v;if(v==null||v==='')return null;const n=Number(String(v).replace(/[^\d.\-]/g,''));return isFinite(n)&&String(v).match(/\d/)?n:null}
+function findRep(name){const n=String(name||'').trim().toLowerCase();if(!n)return null;const reps=repsSorted();
+  let r=reps.find(x=>x.name.toLowerCase()===n);if(r)return r.id;const f=reps.filter(x=>x.name.toLowerCase().split(/\s+/)[0]===n);return f.length===1?f[0].id:null}
+function parseWb(wb,fname){
+  const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
+  let hi=-1;for(let i=0;i<Math.min(rows.length,15);i++){if((rows[i]||[]).some(c=>/customer|client/i.test(String(c||'')))){hi=i;break}}
+  if(hi<0)return {fname,error:'No "Customer" column found. The first rows should hold column headings: Salesperson, Customer, Month, Revenue.'};
+  const H=rows[hi].map(c=>String(c||'').trim());const used=new Set();
+  const pick=re=>{const i=H.findIndex((h,i)=>!used.has(i)&&re.test(h));if(i>=0)used.add(i);return i};
+  const cRep=pick(/sales\s*(person|rep|man|woman|exec|staff)|^rep\b|account\s*(manager|owner)|^owner$|^sales ?person/i);
+  const cCust=pick(/customer|client/i);const cMon=pick(/month|period|date/i);const cAmt=pick(/revenue|amount|sales|value|total|sgd|\$/i);
+  if(cMon<0)return {fname,error:'No "Month" column found. Add a Month column (for example 2026-10 or Oct 2026).'};
+  const out=[];for(let i=hi+1;i<rows.length;i++){const r=rows[i]||[];if(r.every(c=>c==null||String(c).trim()===''))continue;
+    const o={row:i+1,repRaw:cRep>=0?r[cRep]:null,customer:String(r[cCust]==null?'':r[cCust]).trim(),month:readMonth(r[cMon]),monthRaw:r[cMon],amount:cAmt>=0?readAmt(r[cAmt]):null,errs:[]};
+    o.repId=cRep>=0?findRep(o.repRaw):null;
+    if(!o.customer)o.errs.push('Customer missing');
+    if(!o.month)o.errs.push(r[cMon]==null||r[cMon]===''?'Month missing':'Month not recognised');
+    if(cAmt<0)o.errs.push('No revenue column');else if(o.amount==null)o.errs.push('Revenue missing');else if(o.amount<=0)o.errs.push('Revenue must be above zero');
+    if(cRep>=0&&!o.repId)o.errs.push(o.repRaw?'Unknown salesperson "'+String(o.repRaw)+'"':'Salesperson missing');
+    out.push(o)}
+  return {fname,rows:out,hasRep:cRep>=0,assign:''}}
+function renderImport(){const I=UI.imp,box=$('#impResult');if(!I){box.innerHTML='';return}
+  if(I.error){box.innerHTML=`<div class="msg err"><b>${esc(I.fname)}:</b> ${esc(I.error)}</div>`;return}
+  const needAssign=!I.hasRep;const ok=I.rows.filter(r=>!r.errs.length);const bad=I.rows.length-ok.length;const sum=ok.reduce((s,r)=>s+r.amount,0);
+  const ready=ok.length&&(!needAssign||I.assign);
+  box.innerHTML=`<div class="toolbar" style="margin-bottom:8px"><b>${esc(I.fname)}</b><span class="sub">${I.rows.length} rows · <span class="up">${ok.length} ready</span>${bad?` · <span class="down">${bad} need fixing</span>`:''} · ${money(sum)}</span></div>
+   ${needAssign?`<div class="toolbar"><label class="field" style="flex-direction:row;align-items:center;gap:8px">No salesperson column. Assign all rows to <select id="impAssign">${repOptions(I.assign)}</select></label></div>`:''}
+   <div class="tablewrap" style="max-height:300px;overflow:auto"><table><thead><tr><th>Row</th>${I.hasRep?'<th>Salesperson</th>':''}<th>Customer</th><th>Month</th><th class="r">Revenue</th><th></th></tr></thead><tbody>
+   ${I.rows.slice(0,200).map(r=>`<tr class="${r.errs.length?'bad':''}"><td class="num sub">${r.row}</td>${I.hasRep?`<td>${esc(r.repId?repName(r.repId):r.repRaw||'')}</td>`:''}<td>${esc(r.customer)}</td><td>${r.month?mLabel(r.month):esc(r.monthRaw instanceof Date?'':r.monthRaw||'')}</td><td class="r num">${r.amount!=null?money(r.amount):''}</td><td class="err-t">${esc(r.errs.join('; '))}</td></tr>`).join('')}
+   </tbody></table></div>
+   ${bad?`<div class="sub" style="margin-top:6px">Rows that need fixing are skipped. Correct them in the file and import it again${I.hasRep?', or add missing salespeople under Targets & team':''}.</div>`:''}
+   <div class="formfoot"><button class="btn primary" id="impSend" ${ready?'':'disabled'}>Send ${ok.length} row${ok.length===1?'':'s'} to Finance</button><button class="btn" id="impCancel">Cancel</button></div>`;
+  const as=$('#impAssign');if(as)as.onchange=e=>{I.assign=e.target.value;renderImport()};
+  $('#impCancel').onclick=()=>{UI.imp=null;renderImport()};
+  $('#impSend').onclick=async()=>{if(!S.db){toast('Not connected to the shared data store.');return}
+    const now=new Date().toISOString(),batch=newId();
+    const list=ok.map(r=>({id:newId(),month:r.month,repId:I.hasRep?r.repId:I.assign,customer:r.customer,amount:Math.round(r.amount*100)/100,status:'pending',source:'import',batch,file:I.fname,submittedAt:now,note:'',reviewNote:''}));
+    $('#impSend').disabled=true;
+    try{await writeEntries(groupByMonth(list,e=>{const o={...e};delete o.id;delete o.month;return o}));UI.imp=null;box.innerHTML=`<div class="msg ok">Sent ${list.length} rows (${money(sum)}) to Finance for approval.</div>`}
+    catch(err){writeErr(err);$('#impSend').disabled=false}}}
+
+/* ---------- finance review ---------- */
+const keyOf=e=>e.repId+'|'+String(e.customer).trim().toLowerCase()+'|'+e.month;
+function flagsFor(e,all,appr){const f=[];
+  if(all.some(x=>x.id!==e.id&&x.status!=='rejected'&&keyOf(x)===keyOf(e)))f.push('<span class="flag dup" title="Another approved or waiting entry has the same salesperson, customer and month">Possible duplicate</span>');
+  const amts=appr.filter(x=>x.repId===e.repId).map(x=>x.amount).sort((a,b)=>a-b);
+  if(amts.length>=5){const med=amts[Math.floor(amts.length/2)];if(e.amount>med*2.5)f.push(`<span class="flag big" title="Typical entry for this salesperson is about ${compact(med)}">${(e.amount/med).toFixed(1)}× usual size</span>`)}
+  const cl=String(e.customer).trim().toLowerCase();if(!appr.some(x=>String(x.customer).trim().toLowerCase()===cl))f.push('<span class="flag new">New customer</span>');
+  return f.join('')}
+function renderReview(){
+  const all=allEntries(),appr=all.filter(e=>e.status==='approved');let pend=all.filter(e=>e.status==='pending').sort((a,b)=>String(a.submittedAt).localeCompare(String(b.submittedAt)));
+  const badge=$('#pendBadge');badge.textContent=pend.length;pend.length?badge.removeAttribute('data-zero'):badge.setAttribute('data-zero','');
+  $('#revRep').innerHTML=repOptions(UI.revRep,true);
+  const shown=UI.revRep==='all'?pend:pend.filter(e=>e.repId===UI.revRep);
+  const ids=new Set(pend.map(e=>e.id));for(const id of [...UI.revSel])if(!ids.has(id))UI.revSel.delete(id);
+  $('#revSub').textContent=pend.length?`${pend.length} entr${pend.length===1?'y':'ies'} · ${money(pend.reduce((s,e)=>s+e.amount,0))} · none of this is on the dashboard yet`:'Nothing waiting. New submissions appear here.';
+  if(!shown.length){$('#revTbl').innerHTML=`<tbody><tr><td class="empty">${pend.length?'Nothing waiting for this salesperson.':'All caught up.'}</td></tr></tbody>`}
+  else $('#revTbl').innerHTML=`<thead><tr><th></th><th>Submitted</th><th>Salesperson</th><th>Customer</th><th>Month</th><th class="r">Revenue</th><th>Source</th><th>Checks</th><th></th></tr></thead><tbody>`+
+    shown.map(e=>`<tr><td><input type="checkbox" class="rs" data-id="${esc(e.id)}" ${UI.revSel.has(e.id)?'checked':''} aria-label="Select"></td><td class="num">${fmtDate(e.submittedAt)}</td><td><span class="who"><span class="dot" style="background:${repColor(e.repId)}"></span>${esc(repName(e.repId))}</span></td><td>${esc(e.customer)}${e.note?`<div class="sub">${esc(e.note)}</div>`:''}</td><td>${mLabel(e.month)}</td><td class="r num"><b>${money(e.amount)}</b></td><td class="sub">${e.source==='import'?'Excel'+(e.file?': '+esc(e.file):''):'Form'}</td><td>${flagsFor(e,all,appr)||'<span class="sub">—</span>'}</td>
+      <td style="white-space:nowrap"><button class="btn small" data-ap="${esc(e.id)}">Approve</button> <button class="btn small" data-rj="${esc(e.id)}">Reject</button></td></tr>`).join('')+'</tbody>';
+  $('#revAll').checked=shown.length>0&&shown.every(e=>UI.revSel.has(e.id));
+  $$('#revTbl .rs').forEach(c=>c.onchange=()=>{c.checked?UI.revSel.add(c.dataset.id):UI.revSel.delete(c.dataset.id);revCount()});
+  $$('#revTbl [data-ap]').forEach(b=>b.onclick=()=>review([b.dataset.ap],'approved'));
+  $$('#revTbl [data-rj]').forEach(b=>b.onclick=()=>{UI.revSel=new Set([b.dataset.rj]);renderReview();openReject()});
+  revCount();
+  // done
+  const done=all.filter(e=>e.status!=='pending'&&e.reviewedAt).sort((a,b)=>String(b.reviewedAt).localeCompare(String(a.reviewedAt))).slice(0,15);
+  $('#doneTbl').innerHTML=done.length?`<thead><tr><th>Reviewed</th><th>Salesperson</th><th>Customer</th><th>Month</th><th class="r">Revenue</th><th>Decision</th><th>Note</th><th></th></tr></thead><tbody>`+
+    done.map(e=>`<tr><td class="num">${fmtDate(e.reviewedAt)}</td><td>${esc(repName(e.repId))}</td><td>${esc(e.customer)}</td><td>${mLabel(e.month)}</td><td class="r num">${money(e.amount)}</td><td>${statusPill(e.status)}</td><td class="sub">${esc(e.reviewNote||'')}</td><td><button class="btn small" data-ro="${esc(e.id)}">Reopen</button></td></tr>`).join('')+'</tbody>':`<tbody><tr><td class="empty">No decisions yet.</td></tr></tbody>`;
+  $$('#doneTbl [data-ro]').forEach(b=>b.onclick=()=>review([b.dataset.ro],'pending'))}
+function revCount(){const n=UI.revSel.size;$('#revCount').textContent=n?n+' selected':'';$('#revApprove').disabled=!n;$('#revReject').disabled=!n;$('#rejConfirm').textContent=`Reject ${n} entr${n===1?'y':'ies'}`}
+$('#revRep').onchange=e=>{UI.revRep=e.target.value;renderReview()};
+$('#revAll').onchange=e=>{const all=pending().filter(x=>UI.revRep==='all'||x.repId===UI.revRep);all.forEach(x=>e.target.checked?UI.revSel.add(x.id):UI.revSel.delete(x.id));renderReview()};
+$('#revApprove').onclick=()=>review([...UI.revSel],'approved');
+function openReject(){$('#rejBox').hidden=false;revCount();$('#rejReason').focus()}
+$('#revReject').onclick=openReject;
+$('#rejCancel').onclick=()=>{$('#rejBox').hidden=true};
+$('#rejConfirm').onclick=()=>{const why=$('#rejReason').value.trim();if(!why){$('#rejReason').focus();toast('Add a reason so the salesperson knows what to fix.');return}review([...UI.revSel],'rejected',why)};
+async function review(ids,to,note){if(!S.db||!ids.length)return;const map=new Map(allEntries().map(e=>[e.id,e]));const list=ids.map(i=>map.get(i)).filter(Boolean);
+  const now=new Date().toISOString();
+  try{await writeEntries(groupByMonth(list,()=>to==='pending'?{status:'pending',reviewedAt:'',reviewNote:''}:{status:to,reviewedAt:now,reviewNote:note||''}));
+    ids.forEach(i=>UI.revSel.delete(i));if(to==='rejected'){$('#rejBox').hidden=true;$('#rejReason').value=''}
+    toast(to==='approved'?`Approved ${list.length} — now on the dashboard`:to==='rejected'?`Rejected ${list.length}`:'Moved back to the queue')}
+  catch(err){writeErr(err)}}
+
+/* ---------- targets ---------- */
+let tgtDraft=null;
+function renderTargets(force){
+  if(UI.tgtDirty&&!force)return;
+  const ys=[...new Set(yearsAvailable().concat([CUR_Y+1]))].sort();$('#tgtYear').innerHTML=ys.map(y=>`<option${y===UI.tgtYear?' selected':''}>${y}</option>`).join('');
+  const reps=repsSorted(),y=UI.tgtYear;tgtDraft={};
+  reps.forEach(r=>{tgtDraft[r.id]={name:r.name,m:MON.map((_,i)=>+((S.targets[r.id]||{})[ym(y,i+1)])||0)}});
+  if(!reps.length){$('#tgtTbl').innerHTML=`<tbody><tr><td class="empty">No salespeople yet. Add the first one below.</td></tr></tbody>`;setDirty(false);return}
+  const dis=S.canWrite?'':'disabled';
+  $('#tgtTbl').innerHTML=`<thead><tr><th>Salesperson</th>${MON.map(m=>`<th class="r">${m}</th>`).join('')}<th class="r">Annual</th></tr></thead><tbody>`+
+    reps.map(r=>`<tr data-r="${esc(r.id)}"><td><span class="who"><span class="dot" style="background:${repColor(r.id)}"></span><input class="nm" value="${esc(r.name)}" aria-label="Name" ${dis}></span></td>${tgtDraft[r.id].m.map((v,i)=>`<td><input type="number" class="tm num" data-i="${i}" min="0" step="1000" value="${v||''}" aria-label="${MON[i]} target" ${dis}></td>`).join('')}<td><input type="number" class="ta num" min="0" step="1000" value="${tgtDraft[r.id].m.reduce((s,v)=>s+v,0)||''}" aria-label="Annual target" ${dis}></td></tr>`).join('')+
+    `</tbody><tfoot><tr><td>Company</td>${MON.map((_,i)=>`<td class="r num" data-ct="${i}"></td>`).join('')}<td class="r num" data-ct="12"></td></tr></tfoot>`;
+  $$('#tgtTbl tbody tr').forEach(tr=>{const id=tr.dataset.r,d=tgtDraft[id];
+    tr.querySelector('.nm').oninput=e=>{d.name=e.target.value;setDirty(true)};
+    $$('.tm',tr).forEach(inp=>inp.oninput=()=>{d.m[+inp.dataset.i]=Math.max(0,+inp.value||0);tr.querySelector('.ta').value=d.m.reduce((s,v)=>s+v,0)||'';tgtFoot();setDirty(true)});
+    tr.querySelector('.ta').onchange=e=>{const tot=Math.max(0,+e.target.value||0);const each=Math.floor(tot/12/100)*100;d.m=MON.map((_,i)=>i<11?each:tot-each*11);$$('.tm',tr).forEach((inp,i)=>inp.value=d.m[i]||'');tgtFoot();setDirty(true)}});
+  tgtFoot();setDirty(false)}
+function tgtFoot(){const t=Array(13).fill(0);Object.values(tgtDraft).forEach(d=>d.m.forEach((v,i)=>{t[i]+=v;t[12]+=v}));$$('#tgtTbl [data-ct]').forEach(td=>td.textContent=t[+td.dataset.ct]?compact(t[+td.dataset.ct]):'—')}
+function setDirty(v){UI.tgtDirty=v;$('#tgtSave').disabled=!v||!S.canWrite;$('#tgtUndo').disabled=!v;if(v)$('#tgtMsg').textContent=''}
+$('#tgtYear').onchange=e=>{if(UI.tgtDirty&&!confirmDiscard())return e.target.value=UI.tgtYear;UI.tgtYear=+e.target.value;renderTargets(true)};
+function confirmDiscard(){toast('Save or discard your target changes first.');return false}
+$('#tgtUndo').onclick=()=>renderTargets(true);
+$('#tgtSave').onclick=async()=>{const y=UI.tgtYear,tp={},rp={};
+  for(const id in tgtDraft){const d=tgtDraft[id];tp[id]={};d.m.forEach((v,i)=>tp[id][ym(y,i+1)]=v);const nm=d.name.trim();if(nm&&nm!==repName(id))rp[id]={name:nm}}
+  $('#tgtSave').disabled=true;
+  try{await patchDoc('config/targets',{byRep:tp});if(Object.keys(rp).length)await patchDoc('config/reps',{list:rp});UI.tgtDirty=false;$('#tgtMsg').className='msg ok';$('#tgtMsg').textContent='Saved';renderTargets(true);$('#tgtMsg').textContent='Saved'}
+  catch(err){writeErr(err);$('#tgtSave').disabled=false}};
+$('#addRep').onclick=async()=>{const nm=$('#newRep').value.trim();const msg=$('#repMsg');msg.className='msg';
+  if(!nm){$('#newRep').focus();return}if(repsSorted().some(r=>r.name.toLowerCase()===nm.toLowerCase())){msg.className='msg err';msg.textContent=nm+' is already on the team.';return}
+  if(!S.db){msg.className='msg err';msg.textContent='Not connected.';return}
+  const id='r'+Date.now().toString(36);const order=Math.max(0,...repsSorted().map(r=>r.order))+1;
+  try{await patchDoc('config/reps',{list:{[id]:{name:nm,order}}});$('#newRep').value='';msg.className='msg ok';msg.textContent='Added '+nm+'. Set their targets above.'}catch(err){writeErr(err)}};
+$('#newRep').onkeydown=e=>{if(e.key==='Enter')$('#addRep').click()};
+$('#clearSample').onclick=()=>{$('#clearConfirm').hidden=false;$('#clearSample').hidden=true};
+$('#clearNo').onclick=()=>{$('#clearConfirm').hidden=true;$('#clearSample').hidden=false};
+$('#clearYes').onclick=async()=>{try{for(const m of Object.keys(S.months))await S.db.doc('months/'+m).delete();
+    await S.db.doc('config/targets').set({byRep:{}});await S.db.doc('config/reps').set({list:{}});await S.db.doc('config/meta').set({sample:false,currency:'SGD'});
+    UI.tgtDirty=false;toast('Sample data cleared. Add your team to get started.');$('#clearConfirm').hidden=true;$('#clearSample').hidden=false}catch(err){writeErr(err)}};
+
+/* ---------- refresh ---------- */
+let rf=0;
+function refresh(){if(rf)return;rf=requestAnimationFrame(()=>{rf=0;
+  renderBanners();
+  const sv=$('#subRep').value;$('#subRep').innerHTML=repOptions(sv);
+  const custs=[...new Set(allEntries().map(e=>e.customer))].sort();$('#custList').innerHTML=custs.map(c=>`<option value="${esc(c)}">`).join('');
+  $('#samplePanel').hidden=!(S.meta&&S.meta.sample);
+  renderReview();renderRecent();renderTargets();if(UI.imp)renderImport();
+  if(UI.tab==='dashboard')renderDashboard();
+  $$('#v-submit button, #v-review button, #v-targets button').forEach(b=>{if(!S.canWrite&&!b.classList.contains('link')&&b.id!=='tplBtn')b.disabled=true})})}
+
+async function init(){
+  setTab(location.hash.slice(1)||'dashboard');refresh();
+  if(!window.claude||!window.claude.use){S.dbState='none';S.loaded=true;refresh();return}
+  claude.use('downloads').then(d=>{S.dl=d}).catch(()=>{});
+  claude.use('user').then(async u=>{if(!u)return;try{const c=await u.can('data.write');if(c===false){S.canWrite=false;refresh()}}catch(e){}}).catch(()=>{});
+  const db=await claude.use('db').catch(()=>null);
+  if(!db){S.dbState='none';S.loaded=true;refresh();return}
+  S.db=db;S.dbState='ok';let got={m:0,r:0,t:0};const done=()=>{if(got.m&&got.r&&got.t){S.loaded=true}refresh()};
+  const fail=e=>{console.error(e);if(e&&e.code==='revoked'){S.dbState='none';refresh()}};
+  db.collection('months').onSnapshot(s=>{const o={};s.docs.forEach(d=>{const x=d.data();if(x)o[d.id]=x.entries||{}});S.months=o;got.m=1;done()},fail);
+  db.doc('config/reps').onSnapshot(s=>{S.reps=(s.exists&&s.data().list)||{};got.r=1;done()},fail);
+  db.doc('config/targets').onSnapshot(s=>{S.targets=(s.exists&&s.data().byRep)||{};got.t=1;done()},fail);
+  db.doc('config/meta').onSnapshot(s=>{S.meta=(s.exists&&s.data())||{};done()},fail);
+}
+init();
+})();
+</script>
+
+</body></html>
