@@ -1,44 +1,34 @@
-# Hub Sales Dashboard (Vercel)
+# Hub Sales Dashboard (local storage version)
 
-Single-page sales dashboard: Finance-approved revenue by salesperson and customer, target vs actual, Excel import and export.
+Single-page sales dashboard: approved revenue by salesperson and customer, target vs actual, Excel import and export.
+
+**All data is saved in the browser (localStorage) on the computer you use it on.** There is no server, database or password.
 
 ## Files
 
 | File | What it does |
 |---|---|
-| `index.html` | The app (Dashboard, Submit sales, Finance review, Targets & team) |
-| `shim.js` | Data and download layer: talks to `/api/db`, refreshes every 15 seconds, shows the password screen |
-| `api/db.js` | Vercel serverless function that stores data in Upstash Redis |
-| `vercel.json` | Security and no-cache headers |
+| `index.html` | The whole app, including the data layer that saves to this browser's localStorage, plus backup and restore |
+| `vercel.json` | Security headers |
 
-No build step and no npm dependencies.
+It's a static site with no build step and no dependencies. You can also double-click `index.html` to use it straight from your computer. That copy has its own separate data, apart from the website.
 
-## Deploy (about 10 minutes)
+## Deploy
 
-1. **Put the files in GitHub.** Open https://github.com/peiyulim/huatahh, go to **Add file → Upload files**, drag in everything from this folder (including the `api` folder) and commit to `main`.
-2. **Import into Vercel.** Go to vercel.com → **Add New → Project** → import `huatahh`. Framework preset: **Other**. Leave the build settings empty. Click **Deploy**.
-3. **Add storage.** In the project, open **Storage** → **Create Database** → **Upstash for Redis** (free tier is enough), and connect it to this project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` for you.
-4. **Set the team password.** Go to **Settings → Environment Variables** and add `APP_PASSWORD` with a password you share with the team. Without it, anyone who finds the URL can see and change figures.
-5. **Redeploy.** Go to **Deployments** → the latest one → **⋯ → Redeploy**, so the new variables take effect.
+1. Upload the files in this folder to the **top level** of the GitHub repo using **Add file → Upload files**, then commit to `main`. `index.html` must sit at the top of the repo, not inside a subfolder. If you uploaded an older version, delete the old `shim.js` and `api` folder from the repo.
+2. In Vercel, go to **Add New → Project**, import the repo, choose the **Other** preset, leave the build settings empty and click **Deploy**.
 
-Open the URL, enter the password (each browser remembers it), go to **Targets & team**, and add your salespeople.
+No storage or environment variables are needed. If an older version of this project had Upstash storage or `APP_PASSWORD` set up, they're no longer used and can be removed.
 
-## Troubleshooting
+## Important: how local storage behaves
 
-Open `https://<your-site>.vercel.app/api/db?check=1`. It shows setup status only, never data or secrets.
-
-| You see | Fix |
-|---|---|
-| `"storageConnected": false` | Storage → connect Upstash for Redis to this project → Redeploy |
-| `"storageWorking": false` | Upstash database is paused or deleted. Check it under Storage, then Redeploy |
-| `"passwordSet": false` | Add `APP_PASSWORD` under Settings → Environment Variables → Redeploy |
-| A 404 page | The `api` folder didn't reach GitHub. Upload `api/db.js` and redeploy |
-
-When a save fails, a red bar at the top of the app shows the exact reason.
+- **One browser, one copy.** Data entered in Chrome on your laptop isn't visible in Edge, on another computer, or to anyone else.
+- **Keep using the same URL.** Data belongs to the exact web address. Vercel preview URLs, such as `…-git-main-….vercel.app`, have separate, empty data. Bookmark the main production URL and always use that.
+- **Clearing browsing data deletes it.** So does a private or incognito window, which also forgets everything when it's closed.
+- **Back up regularly.** Go to **Targets & team → Backup → Download backup** to save a `.json` file with everything: entries, approvals, salespeople and targets. Use **Restore from backup** to load it on another computer or browser. Restoring replaces what's currently there.
+- The dashboard's Excel export is a report, not a full backup. Use the `.json` backup to move or restore data.
 
 ## Notes
 
-- The app starts empty. Data from the claude.ai version is not copied over.
-- Everyone with the password can use every tab, including Finance approval.
-- To change the password, edit `APP_PASSWORD` and redeploy. Everyone will be asked to enter the new one.
-- The Excel library loads from cdnjs.cloudflare.com, so browsers need internet access to that site.
+- Several tabs of the app open in the same browser stay in sync.
+- The Excel library loads from cdnjs.cloudflare.com, so Excel import and export need internet access to that site.

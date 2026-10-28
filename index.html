@@ -1,33 +1,33 @@
 <!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Hub Sales Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: sticky ink header with tabs; one 1280px column of panels — KPI strip, then comparison charts, then detail tables. */
+/* Layout: left sidebar nav; content column of flat sections. Overview = 3-column card grid separated by hairlines. */
 :root{
-  --bg:#f3f4f2; --panel:#fcfcfb; --ink:#14181b; --ink-2:#50565b; --muted:#80868a;
-  --line:#e1e3df; --axis:#c4c7c3; --hover:#eceeea;
-  --accent:#1f4e5f; --accent-ink:#ffffff; --accent-soft:#e1ecef;
-  --head:#14262e; --head-ink:#e9f0f1; --head-muted:#97aab0;
-  --good:#0ca30c; --good-ink:#006300; --warn:#fab219; --warn-ink:#8a5a00; --bad:#d03b3b; --bad-ink:#b02a2a;
+  --bg:#ffffff; --panel:#ffffff; --ink:#1a1f36; --ink-2:#414552; --muted:#687385;
+  --line:#e6e8eb; --axis:#d5dbe1; --hover:#f6f8fa;
+  --accent:#5b54e8; --accent-ink:#ffffff; --accent-soft:#eeedfd;
+  --head:#ffffff; --side:#ffffff; --prev:#a3acb9;
+  --good:#0ca30c; --good-ink:#0b6b12; --warn:#e5a000; --warn-ink:#8a5a00; --bad:#d03b3b; --bad-ink:#b02a2a;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
-  --font:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r:8px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f1213; --panel:#171b1c; --ink:#eef0ee; --ink-2:#c0c5c2; --muted:#8a9093;
-  --line:#2a2f30; --axis:#3b4142; --hover:#20262a;
-  --accent:#86bccd; --accent-ink:#0f1213; --accent-soft:#1c3037;
-  --head:#0b1518; --head-ink:#e9f0f1; --head-muted:#8299a0;
+  --bg:#0f1115; --panel:#15181e; --ink:#eceef2; --ink-2:#c3c8d1; --muted:#8b93a1;
+  --line:#262a33; --axis:#363b45; --hover:#1c2028;
+  --accent:#8f8af5; --accent-ink:#0f1115; --accent-soft:#25244a;
+  --head:#0f1115; --side:#0f1115; --prev:#5d6574;
   --good:#0ca30c; --good-ink:#3fc13f; --warn:#fab219; --warn-ink:#f2c55c; --bad:#d03b3b; --bad-ink:#ef7a7a;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
   color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1213; --panel:#171b1c; --ink:#eef0ee; --ink-2:#c0c5c2; --muted:#8a9093;
-  --line:#2a2f30; --axis:#3b4142; --hover:#20262a;
-  --accent:#86bccd; --accent-ink:#0f1213; --accent-soft:#1c3037;
-  --head:#0b1518; --head-ink:#e9f0f1; --head-muted:#8299a0;
+  --bg:#0f1115; --panel:#15181e; --ink:#eceef2; --ink-2:#c3c8d1; --muted:#8b93a1;
+  --line:#262a33; --axis:#363b45; --hover:#1c2028;
+  --accent:#8f8af5; --accent-ink:#0f1115; --accent-soft:#25244a;
+  --head:#0f1115; --side:#0f1115; --prev:#5d6574;
   --good:#0ca30c; --good-ink:#3fc13f; --warn:#fab219; --warn-ink:#f2c55c; --bad:#d03b3b; --bad-ink:#ef7a7a;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
   color-scheme:dark}
@@ -38,28 +38,41 @@ button,input,select{font:inherit;color:inherit}
 .num{font-variant-numeric:tabular-nums}
 .mono{font-family:var(--mono);font-size:12.5px}
 
-/* header */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--head);color:var(--head-ink);
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.top-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding-block:10px}
-.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
-.brand b{font-size:17px;font-weight:700;letter-spacing:-.01em}
-.brand span{color:var(--head-muted);font-size:12.5px}
-.tabs{display:flex;gap:2px;overflow-x:auto;max-width:100%}
-.tab{background:none;border:0;color:var(--head-muted);padding:8px 12px;border-radius:6px;cursor:pointer;font-weight:500;white-space:nowrap;display:flex;gap:6px;align-items:center}
-.tab:hover{color:var(--head-ink);background:rgba(255,255,255,.06)}
-.tab[aria-selected="true"]{color:var(--head-ink);background:rgba(255,255,255,.12)}
-.badge{background:var(--warn);color:#14181b;border-radius:10px;font-size:11px;font-weight:700;padding:1px 7px;min-width:20px;text-align:center}
+/* sidebar */
+.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;align-self:start;background:var(--side);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--bg);font-size:10.5px;font-weight:700;display:grid;place-items:center;letter-spacing:.02em;flex:none}
+.brand b{font-size:14px;font-weight:600;white-space:nowrap}
+.tabs{display:flex;flex-direction:column;gap:2px}
+.tab{background:none;border:0;color:var(--ink-2);padding:6px 8px;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px;white-space:nowrap;display:flex;gap:10px;align-items:center;text-align:left}
+.tab svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab:hover{background:var(--hover);color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--accent);font-weight:600}
+.tab .badge{margin-left:auto}
+.sidefoot{margin-top:auto;padding:0 8px;font-size:12px;color:var(--muted);line-height:1.5}
+@media (max-width:820px){
+  .app{display:block}
+  .side{position:sticky;top:0;z-index:5;height:auto;flex-direction:row;align-items:center;gap:12px;padding:10px 16px;border-right:0;border-bottom:1px solid var(--line)}
+  .tabs{flex-direction:row;overflow-x:auto;min-width:0}
+  .tab svg{display:none}
+  .sidefoot{display:none}
+}
+.badge{background:var(--warn);color:#1a1f36;border-radius:10px;font-size:11px;font-weight:700;padding:1px 7px;min-width:20px;text-align:center}
 .badge[data-zero]{display:none}
 
-main{max-width:1280px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
-section.view{display:flex;flex-direction:column;gap:16px}
-.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--line);padding:9px 14px;border-radius:var(--r);font-size:13px;color:var(--ink-2)}
+main{max-width:1200px;margin:0 auto;padding-block:28px 56px;padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+@media (max-width:820px){main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:20px}}
+section.view{display:flex;flex-direction:column;gap:20px}
+h1.pt{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.pagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border:0;padding:9px 14px;border-radius:var(--r);font-size:13px;color:var(--ink-2)}
 .banner b{color:var(--ink)}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;min-width:0}
+#v-dashboard .panel{border:0;border-top:1px solid var(--line);border-radius:0;padding:24px 0 8px;background:transparent}
 .ph{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 h1,h2,h3{margin:0;text-wrap:balance}
-h2{font-size:15px;font-weight:600;letter-spacing:-.005em}
+h2{font-size:16px;font-weight:600;letter-spacing:-.01em}
 .sub{color:var(--muted);font-size:12.5px}
 .eyebrow{text-transform:uppercase;letter-spacing:.07em;font-size:11px;color:var(--muted);font-weight:600}
 
@@ -67,18 +80,19 @@ h2{font-size:15px;font-weight:600;letter-spacing:-.005em}
 .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:2px}
 .seg button{border:0;background:none;padding:5px 11px;border-radius:5px;cursor:pointer;color:var(--ink-2);font-weight:500}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
 .seg button:hover:not([aria-pressed="true"]){background:var(--hover)}
 select,input[type=text],input[type=number],input[type=month],input:not([type]){background:var(--panel);border:1px solid var(--axis);border-radius:6px;padding:6px 9px;min-width:0}
 select{padding-right:6px}
-.btn{border:1px solid var(--axis);background:var(--panel);border-radius:6px;padding:7px 13px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn{border:1px solid var(--axis);background:var(--panel);border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:500;font-size:13.5px;white-space:nowrap;box-shadow:0 1px 1px rgba(16,24,40,.05);display:inline-flex;align-items:center;gap:6px}
 .btn:hover{background:var(--hover)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
 .btn.small{padding:4px 9px;font-size:12.5px}
 .btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
-.link{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.link{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-weight:500;text-decoration:none}
+.link:hover{text-decoration:underline;text-underline-offset:2px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .spacer{flex:1}
 
@@ -91,11 +105,51 @@ select{padding-right:6px}
 .meter{position:relative;height:8px;background:var(--hover);border-radius:4px;margin-top:4px}
 .meter i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--accent)}
 .meter b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
-.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid currentColor;white-space:nowrap}
-.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:4px;background:color-mix(in srgb,currentColor 13%,transparent);white-space:nowrap}
 .pill.good{color:var(--good-ink)}.pill.warn{color:var(--warn-ink)}.pill.bad{color:var(--bad-ink)}.pill.neutral{color:var(--muted)}
 
-.row2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px}
+/* overview cards */
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select.pick{appearance:none;-webkit-appearance:none;border:1px solid var(--axis);border-radius:6px;padding:4px 28px 4px 10px;font-size:13px;font-weight:500;background:var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='%23687385' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 9px center;box-shadow:0 1px 1px rgba(16,24,40,.05);cursor:pointer}
+.cmpword{color:var(--muted);font-size:13px}
+.ov{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:44px;border-top:1px solid var(--line)}
+.ov+.ov{border-top:1px solid var(--line)}
+.card{padding:24px 0 20px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card h3{font-size:15px;font-weight:600;display:flex;gap:6px;align-items:center;min-height:22px}
+.card h3 .rt{margin-left:auto;font-size:12.5px;font-weight:400;color:var(--muted)}
+.info{width:14px;height:14px;color:var(--muted);cursor:help;flex:none}
+.delta{font-size:11.5px;font-weight:600;padding:1px 6px;border-radius:4px;white-space:nowrap}
+.delta.up{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good-ink)}
+.delta.down{background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad-ink)}
+.delta.flat{background:var(--hover);color:var(--muted)}
+.big{font-size:15px;font-weight:600;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.big .v{font-size:20px;letter-spacing:-.01em}
+.big .p{font-size:13px;font-weight:400;color:var(--muted)}
+.spark{position:relative;margin-top:10px}
+.spark svg{display:block;width:100%;overflow:visible}
+.spark text{fill:var(--muted);font-size:11px;font-family:var(--font)}
+.skey{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px}
+.skey span{display:inline-flex;gap:6px;align-items:center}
+.skey i{display:inline-block;width:14px;border-top:2px solid var(--accent)}
+.skey i.d{border-top:2px dashed var(--prev)}
+.cfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin-top:auto;padding-top:12px}
+.cfoot .sub{font-size:12.5px}
+.sbar{display:flex;gap:2px;height:12px;margin:10px 0 6px}
+.sbar i{display:block;height:100%;min-width:3px}
+.sbar i:first-child{border-radius:4px 0 0 4px}.sbar i:last-child{border-radius:0 4px 4px 0}.sbar i:only-child{border-radius:4px}
+.sbar.none{background:var(--hover);border-radius:4px}
+.srow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.srow .dot{border-radius:3px}
+.srow .c{color:var(--muted);font-size:12.5px}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);min-width:0}
+.li>div{min-width:0}
+.li b{font-weight:600;font-size:13.5px}
+.li .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cempty{color:var(--muted);font-size:13px;padding:22px 0}
+@media (max-width:1060px){.ov{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.ov{grid-template-columns:minmax(0,1fr);border-top:0}.ov .card{border-top:1px solid var(--line)}}
+
+.row2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);column-gap:44px}
 @media (max-width:980px){.row2{grid-template-columns:minmax(0,1fr)}}
 
 /* bullet rows */
@@ -187,39 +241,49 @@ tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
 @media (prefers-reduced-motion:no-preference){.track .bar,.meter i,.stack i{transition:width .35s ease}}
 </style>
 
-<header class="top">
-  <div class="top-in">
-    <div class="brand"><b>Hub Sales</b><span id="asof">Approved revenue · SGD</span></div>
-    <nav class="tabs" role="tablist">
-      <button class="tab" role="tab" data-tab="dashboard" aria-selected="true">Dashboard</button>
-      <button class="tab" role="tab" data-tab="submit" aria-selected="false">Submit sales</button>
-      <button class="tab" role="tab" data-tab="review" aria-selected="false">Finance review <span class="badge" id="pendBadge" data-zero>0</span></button>
-      <button class="tab" role="tab" data-tab="targets" aria-selected="false">Targets &amp; team</button>
-    </nav>
-  </div>
-</header>
+<div class="app">
+<aside class="side">
+  <div class="brand"><span class="logo">HS</span><b>Hub Sales</b></div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="dashboard" aria-selected="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7.5 8 3l5 4.5V13H9.5v-3h-3v3H3z"/></svg>Overview</button>
+    <button class="tab" role="tab" data-tab="submit" aria-selected="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5 8 3l3.5 3.5M3 13h10"/></svg>Submit sales</button>
+    <button class="tab" role="tab" data-tab="review" aria-selected="false"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m5.6 8.1 1.7 1.7 3.2-3.4"/></svg>Finance review <span class="badge" id="pendBadge" data-zero>0</span></button>
+    <button class="tab" role="tab" data-tab="targets" aria-selected="false"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2.5"/></svg>Targets &amp; team</button>
+  </nav>
+  <div class="sidefoot">Approved revenue · SGD<br>Saved in this browser</div>
+</aside>
 
 <main>
   <div id="banners"></div>
 
   <!-- DASHBOARD -->
   <section class="view" id="v-dashboard">
-    <div class="filters">
-      <select id="fYear" aria-label="Year"></select>
-      <div class="seg" id="fMode">
-        <button data-m="month" aria-pressed="false">Month</button>
-        <button data-m="quarter" aria-pressed="false">Quarter</button>
-        <button data-m="ytd" aria-pressed="true">Year to date</button>
-        <button data-m="year" aria-pressed="false">Full year</button>
-      </div>
-      <div id="fSel"></div>
-      <span class="spacer"></span>
-      <button class="btn" id="exportBtn">Export to Excel</button>
+    <div class="pagehead">
+      <h1 class="pt">Overview</h1>
+      <button class="btn" id="exportBtn"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v7M5 7l3 3 3-3M3 13h10"/></svg>Export</button>
+    </div>
+    <div class="ctrl">
+      <select id="fMode" class="pick" aria-label="Period"><option value="month">Month</option><option value="quarter">Quarter</option><option value="ytd">Year to date</option><option value="year">Full year</option></select>
+      <span id="fSel"></span>
+      <select id="fYear" class="pick" aria-label="Year"></select>
+      <span class="cmpword">compared to</span>
+      <select id="fCmp" class="pick" aria-label="Compare with"></select>
     </div>
 
-    <div class="kpis" id="kpis"></div>
+    <div>
+    <div class="ov">
+      <div class="card" id="cStatus"><h3><span>Submissions</span><span title="Every entry for this period, split by Finance status. Only approved entries count as revenue." aria-label="Every entry for this period, split by Finance status. Only approved entries count as revenue." role="img"><svg class="info" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.6M8 5.1v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></h3><div class="cb"></div></div>
+      <div class="card" id="cRev"><h3><span>Approved revenue</span><span title="Finance-approved revenue in the selected period. The chart shows each month of the year against the year before; the shaded band is the selected period." aria-label="Finance-approved revenue in the selected period. The chart shows each month of the year against the year before; the shaded band is the selected period." role="img"><svg class="info" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.6M8 5.1v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></h3><div class="cb"></div></div>
+      <div class="card" id="cTgt"><h3><span>Target attainment</span><span title="Approved revenue as a share of the combined targets for the selected period. The chart shows the running total for the year against the running target." aria-label="Approved revenue as a share of the combined targets for the selected period. The chart shows the running total for the year against the running target." role="img"><svg class="info" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.6M8 5.1v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></h3><div class="cb"></div></div>
+    </div>
+    <div class="ov">
+      <div class="card" id="cPend"><h3><span>Waiting for Finance</span><span title="Entries submitted but not yet approved or rejected. They do not count as revenue yet." aria-label="Entries submitted but not yet approved or rejected. They do not count as revenue yet." role="img"><svg class="info" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.6M8 5.1v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></h3><div class="cb"></div></div>
+      <div class="card" id="cNew"><h3><span>New customers</span><span title="Customers whose first approved sale falls in the selected period." aria-label="Customers whose first approved sale falls in the selected period." role="img"><svg class="info" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.6M8 5.1v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></h3><div class="cb"></div></div>
+      <div class="card" id="cTop"><h3><span>Top customers by revenue</span><span title="Customers with the most approved revenue in the selected period." aria-label="Customers with the most approved revenue in the selected period." role="img"><svg class="info" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v3.6M8 5.1v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="rt" id="cTopLbl"></span></h3><div class="cb"></div></div>
+    </div>
+    </div>
 
-    <div class="panel">
+    <div class="panel" id="pBul">
       <div class="ph">
         <div><h2>Target vs actual by salesperson</h2><div class="sub" id="bulSub">—</div></div>
         <div class="legend"><span class="k"><span class="dot" style="background:var(--muted)"></span>Actual (colour = salesperson)</span><span class="k"><span class="tk"></span>Target</span></div>
@@ -228,7 +292,7 @@ tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
     </div>
 
     <div class="row2">
-      <div class="panel">
+      <div class="panel" id="pTrend">
         <div class="ph">
           <div><h2>Monthly revenue</h2><div class="sub" id="trendSub">—</div></div>
           <div class="seg" id="trendMode"><button data-t="stack" aria-pressed="true">Company total</button><button data-t="lines" aria-pressed="false">Compare salespeople</button></div>
@@ -236,7 +300,7 @@ tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
         <div class="legend" id="trendLegend" style="margin-bottom:10px"></div>
         <div class="chart" id="trend"></div>
       </div>
-      <div class="panel">
+      <div class="panel" id="pCust">
         <div class="ph"><div><h2>Where the revenue came from</h2><div class="sub" id="custSub">—</div></div></div>
         <div class="chips" id="custChips"></div>
         <div id="cust"></div>
@@ -251,6 +315,7 @@ tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
 
   <!-- SUBMIT -->
   <section class="view" id="v-submit" hidden>
+    <h1 class="pt">Submit sales</h1>
     <div class="grid2">
       <div class="panel">
         <div class="ph"><div><h2>Submit sales</h2><div class="sub">Entries go to Finance for approval. They show on the dashboard once approved.</div></div></div>
@@ -294,6 +359,7 @@ tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
 
   <!-- REVIEW -->
   <section class="view" id="v-review" hidden>
+    <h1 class="pt">Finance review</h1>
     <div class="panel">
       <div class="ph"><div><h2>Awaiting approval</h2><div class="sub" id="revSub">—</div></div></div>
       <div class="toolbar">
@@ -319,6 +385,7 @@ tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
 
   <!-- TARGETS -->
   <section class="view" id="v-targets" hidden>
+    <h1 class="pt">Targets &amp; team</h1>
     <div class="panel">
       <div class="ph"><div><h2>Monthly targets</h2><div class="sub">Type an annual figure to spread it evenly across the 12 months, or edit single months.</div></div></div>
       <div class="toolbar">
@@ -342,13 +409,192 @@ tr.bad td{background:color-mix(in srgb,var(--bad) 7%,transparent)}
         <span id="clearConfirm" hidden>Removes every entry, target and salesperson. <button class="btn danger small" id="clearYes">Yes, clear everything</button> <button class="btn small" id="clearNo">Cancel</button></span>
       </div>
     </div>
+    <div class="panel" id="backupPanel">
+      <div class="ph"><div><h2>Backup</h2><div class="sub">All data is saved in this browser on this computer only. Clearing browsing data, or using another browser or computer, means it isn't there. Download a backup regularly.</div></div></div>
+      <div class="formfoot" style="margin-top:0">
+        <button class="btn primary" id="bkDownload" data-keep>Download backup</button>
+        <button class="btn" id="bkRestore">Restore from backup…</button>
+        <input type="file" id="bkFile" accept=".json,application/json" hidden>
+        <span id="bkConfirm" hidden>Replaces everything in this browser with <b id="bkName"></b>. <button class="btn danger small" id="bkYes">Yes, restore</button> <button class="btn small" id="bkNo">Cancel</button></span>
+        <span class="msg" id="bkMsg"></span>
+      </div>
+    </div>
   </section>
 </main>
+</div>
 
 <div class="tip" id="tip" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
-<script src="/shim.js"></script>
+<script>
+/* Hub Sales data layer: everything is saved in this browser's localStorage.
+   No server, no password. Each browser/computer has its own separate copy.
+   window.claude.use('db')        -> local document store (same API the page expects)
+   window.claude.use('downloads') -> normal browser downloads
+   window.hubStore                -> backup / restore helpers used on the Targets & team tab */
+(function () {
+  var KEY = 'hubsales.data.v1';
+  var PATH_RE = /^(months\/\d{4}-\d{2}|config\/(reps|targets|meta))$/;
+
+  function err(code, msg) { var e = new Error(msg || code); e.code = code; return e; }
+  function clone(x) { return x == null ? x : JSON.parse(JSON.stringify(x)); }
+  function isObj(v) { return v && typeof v === 'object' && !Array.isArray(v); }
+
+  /* ---------- storage ---------- */
+  var docs = {};
+  var storageOk = true;
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      var j = raw ? JSON.parse(raw) : null;
+      docs = (j && isObj(j.docs)) ? j.docs : {};
+    } catch (e) {
+      docs = {};
+      try { var bad = localStorage.getItem(KEY); if (bad) localStorage.setItem(KEY + '.unreadable', bad); }
+      catch (e2) { storageOk = false; }
+    }
+  }
+  function persist(next) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), docs: next }));
+    } catch (e) {
+      var full = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+      throw err(full ? 'quota_exceeded' : 'unavailable', full ? 'Browser storage is full' : 'This browser blocks storage');
+    }
+    docs = next;
+  }
+  load();
+  try { localStorage.setItem(KEY + '.test', '1'); localStorage.removeItem(KEY + '.test'); } catch (e) { storageOk = false; }
+
+  // Merge like the shared store did: nested objects merge field by field, everything else replaces.
+  function deepMerge(target, patch) {
+    for (var k in patch) {
+      var v = patch[k];
+      if (isObj(v) && Object.keys(v).length) {
+        if (!isObj(target[k])) target[k] = {};
+        deepMerge(target[k], v);
+      } else target[k] = clone(v);
+    }
+    return target;
+  }
+
+  /* ---------- listeners ---------- */
+  var listeners = [];
+  function snapDoc(path) {
+    var has = Object.prototype.hasOwnProperty.call(docs, path);
+    var data = has ? clone(docs[path]) : undefined;
+    return { id: path.split('/').pop(), exists: has, data: function () { return data; } };
+  }
+  function snapCol(col) {
+    var pre = col + '/';
+    var list = Object.keys(docs).filter(function (p) { return p.indexOf(pre) === 0 && p.slice(pre.length).indexOf('/') < 0; }).sort();
+    return { docs: list.map(snapDoc), size: list.length, empty: !list.length };
+  }
+  function sigFor(l) {
+    if (l.type === 'doc') return JSON.stringify(docs[l.path] === undefined ? null : docs[l.path]);
+    var pre = l.path + '/', o = {};
+    Object.keys(docs).sort().forEach(function (p) { if (p.indexOf(pre) === 0) o[p] = docs[p]; });
+    return JSON.stringify(o);
+  }
+  function emit(l, force) {
+    var s = sigFor(l);
+    if (!force && s === l.last) return;
+    l.last = s;
+    try { l.cb(l.type === 'doc' ? snapDoc(l.path) : snapCol(l.path)); } catch (e) { console.error(e); }
+  }
+  function emitAll() { listeners.forEach(function (l) { emit(l, false); }); }
+
+  // Keep other open tabs of the app in step.
+  window.addEventListener('storage', function (ev) { if (ev.key === KEY || ev.key === null) { load(); emitAll(); } });
+
+  function write(path, fn) {
+    if (!PATH_RE.test(path)) return Promise.reject(err('invalid_argument', 'Unknown document path'));
+    try {
+      var next = clone(docs);
+      fn(next);
+      persist(next);
+    } catch (e) { return Promise.reject(e.code ? e : err('internal', String(e))); }
+    emitAll();
+    return Promise.resolve();
+  }
+
+  function docRef(path) {
+    return {
+      id: path.split('/').pop(),
+      get: function () { return Promise.resolve(snapDoc(path)); },
+      set: function (data) { return write(path, function (d) { d[path] = clone(data || {}); }); },
+      update: function (data) {
+        if (!Object.prototype.hasOwnProperty.call(docs, path)) return Promise.reject(err('invalid_argument', 'Document does not exist'));
+        return write(path, function (d) { deepMerge(d[path], data || {}); });
+      },
+      delete: function () { return write(path, function (d) { delete d[path]; }); },
+      onSnapshot: function (cb) {
+        var l = { type: 'doc', path: path, cb: cb, last: undefined };
+        listeners.push(l);
+        setTimeout(function () { emit(l, true); }, 0);
+        return function () { listeners = listeners.filter(function (x) { return x !== l; }); };
+      }
+    };
+  }
+  var db = {
+    doc: docRef,
+    collection: function (name) {
+      return {
+        doc: function (id) { return docRef(name + '/' + id); },
+        get: function () { return Promise.resolve(snapCol(name)); },
+        onSnapshot: function (cb) {
+          var l = { type: 'col', path: name, cb: cb, last: undefined };
+          listeners.push(l);
+          setTimeout(function () { emit(l, true); }, 0);
+          return function () { listeners = listeners.filter(function (x) { return x !== l; }); };
+        }
+      };
+    }
+  };
+
+  var downloads = {
+    save: async function (o) {
+      var blob = o.data instanceof Blob ? o.data : new Blob([o.data]);
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = o.filename || 'download';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    }
+  };
+
+  /* ---------- backup / restore ---------- */
+  window.hubStore = {
+    available: function () { return storageOk; },
+    savedAt: function () { try { var j = JSON.parse(localStorage.getItem(KEY) || 'null'); return j && j.savedAt; } catch (e) { return null; } },
+    backup: function () {
+      var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
+      var name = 'hub-sales-backup-' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '.json';
+      var body = JSON.stringify({ app: 'hub-sales', version: 1, exportedAt: d.toISOString(), docs: docs }, null, 2);
+      return downloads.save({ data: new Blob([body], { type: 'application/json' }), filename: name });
+    },
+    // Replaces everything in this browser with the backup's contents.
+    restore: function (text) {
+      var j;
+      try { j = JSON.parse(text); } catch (e) { return Promise.reject(err('invalid_argument', 'Not a valid backup file')); }
+      if (!j || j.app !== 'hub-sales' || !isObj(j.docs)) return Promise.reject(err('invalid_argument', 'Not a Hub Sales backup file'));
+      var next = {};
+      Object.keys(j.docs).forEach(function (p) { if (PATH_RE.test(p) && isObj(j.docs[p])) next[p] = j.docs[p]; });
+      try { persist(next); } catch (e) { return Promise.reject(e); }
+      emitAll();
+      return Promise.resolve(Object.keys(next).length);
+    }
+  };
+
+  window.claude = {
+    use: async function (name) {
+      if (name === 'db') return storageOk ? db : null;
+      if (name === 'downloads') return downloads;
+      return null;
+    }
+  };
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 (function(){
@@ -367,7 +613,7 @@ const fmtDate=iso=>{if(!iso)return '—';const d=new Date(iso);if(isNaN(d))retur
 const newId=()=>'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 const S={reps:{},targets:{},months:{},meta:{},loaded:false,db:null,dl:null,canWrite:true,dbState:'loading'};
-const UI={tab:'dashboard',year:CUR_Y,mode:'ytd',sel:null,trend:'stack',custRep:'all',custAll:false,hidden:new Set(),revRep:'all',revSel:new Set(),tgtDirty:false,tgtYear:CUR_Y,imp:null};
+const UI={tab:'dashboard',year:CUR_Y,mode:'ytd',sel:null,trend:'stack',cmp:'prev',custRep:'all',custAll:false,hidden:new Set(),revRep:'all',revSel:new Set(),tgtDirty:false,tgtYear:CUR_Y,imp:null};
 
 /* ---------- toast & tooltip ---------- */
 let toastT;
@@ -394,6 +640,19 @@ function prevPeriod(y,mode,sel){
   if(mode==='quarter'){let q=sel-1,yy=y;if(q<1){q=4;yy--}return {months:periodMonths(yy,'quarter',q),label:'Q'+q+' '+yy}}
   if(mode==='ytd'){const last=ytdLast(y);return {months:periodMonths(y-1,'ytd',0).slice(0,0).concat(Array.from({length:last},(_,i)=>ym(y-1,i+1))),label:(last?('Jan–'+MON[last-1]+' '):'')+(y-1)}}
   return {months:periodMonths(y-1,'year'),label:String(y-1)}}
+function comparePeriod(y,mode,sel){
+  const r=comparePeriodFull(y,mode,sel);
+  // period still in progress: compare only the months that have happened so far
+  if(y===CUR_Y&&(mode==='quarter'||mode==='year')){const cur=periodMonths(y,mode,sel),k=cur.filter(m=>m<=ym(CUR_Y,CUR_M)).length;
+    if(k>0&&k<cur.length){const ms=r.months.slice(0,k),a=ms[0].split('-'),b=ms[k-1].split('-');
+      return {months:ms,label:k===1?mLabel(ms[0]):(a[0]===b[0]?MON[+a[1]-1]+'–'+MON[+b[1]-1]+' '+a[0]:mLabel(ms[0])+'–'+mLabel(ms[k-1]))}}}
+  return r}
+function comparePeriodFull(y,mode,sel){
+  if((mode==='month'||mode==='quarter')&&UI.cmp!=='yoy')return prevPeriod(y,mode,sel);
+  if(mode==='month')return {months:[ym(y-1,sel)],label:MON[sel-1]+' '+(y-1)};
+  if(mode==='quarter')return {months:periodMonths(y-1,'quarter',sel),label:'Q'+sel+' '+(y-1)};
+  return prevPeriod(y,mode,sel)}
+function shortLabel(y,mode,sel){if(mode==='month')return MON[sel-1]+' '+y;if(mode==='quarter')return 'Q'+sel+' '+y;if(mode==='ytd'){const l=ytdLast(y);return l?(l===1?'Jan ':'Jan–'+MON[l-1]+' ')+y:String(y)}return String(y)}
 function periodLabel(y,mode,sel){
   if(mode==='month')return MON[sel-1]+' '+y;
   if(mode==='quarter')return 'Q'+sel+' '+y;
@@ -414,9 +673,8 @@ async function patchDoc(path,patch,initial){const ref=S.db.doc(path);
 async function writeEntries(byMonth){for(const m of Object.keys(byMonth).sort()){await patchDoc('months/'+m,{entries:byMonth[m]},{month:m})}}
 function groupByMonth(list,fn){const o={};for(const e of list){(o[e.month]||(o[e.month]={}))[e.id]=fn(e)}return o}
 function writeErr(err){console.error(err);const c=err&&err.code;
-  if(c==='invalid_argument'){S.canWrite=false;renderBanners();toast("You have view-only access, so this change wasn't saved.")}
-  else if(c==='quota_exceeded')toast('Storage is full. Ask the owner to archive older data.');
-  else toast("Couldn't save. Check your connection and try again.")}
+  if(c==='quota_exceeded')toast("This browser's storage is full. Download a backup, then clear older data.");
+  else toast("Couldn't save. This browser is blocking storage (a private window, or site data turned off).")}
 
 /* ---------- tabs ---------- */
 function setTab(t){if(!['dashboard','submit','review','targets'].includes(t))t='dashboard';UI.tab=t;
@@ -429,7 +687,7 @@ addEventListener('hashchange',()=>setTab(location.hash.slice(1)));
 
 /* ---------- banners ---------- */
 function renderBanners(){const b=[];
-  if(S.dbState==='none')b.push(`<div class="banner"><b>Not connected to the shared data store.</b> Check your connection and reload the page.</div>`);
+  if(S.dbState==='none')b.push(`<div class="banner"><b>This browser can't save data.</b> It's a private window or site data is turned off, so nothing you enter will be kept. Open the app in a normal window.</div>`);
   else if(!S.canWrite)b.push(`<div class="banner"><b>View only.</b> You can see the dashboard but not submit, approve or change targets.</div>`);
   if(S.meta&&S.meta.sample)b.push(`<div class="banner"><b>Sample data.</b> These salespeople, customers and figures are made up. Clear them under <button class="link" data-goto="targets">Targets &amp; team</button> when you're ready to start.</div>`);
   $('#banners').innerHTML=b.join('');$$('[data-goto]').forEach(x=>x.onclick=()=>setTab(x.dataset.goto))}
@@ -437,42 +695,35 @@ function renderBanners(){const b=[];
 /* ---------- dashboard ---------- */
 function renderFilters(){
   const ys=yearsAvailable();$('#fYear').innerHTML=ys.map(y=>`<option value="${y}"${y===UI.year?' selected':''}>${y}</option>`).join('');
-  $$('#fMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===UI.mode)));
+  $('#fMode').value=UI.mode;
   const fs=$('#fSel');
   if(UI.mode==='month'){if(!UI.sel||UI.sel>12)UI.sel=UI.year===CUR_Y?CUR_M:12;
-    fs.innerHTML=`<select id="fMonth" aria-label="Month">${MON.map((m,i)=>`<option value="${i+1}"${i+1===UI.sel?' selected':''}>${m}</option>`).join('')}</select>`;
+    fs.innerHTML=`<select id="fMonth" class="pick" aria-label="Month">${MON.map((m,i)=>`<option value="${i+1}"${i+1===UI.sel?' selected':''}>${m}</option>`).join('')}</select>`;
     $('#fMonth').onchange=e=>{UI.sel=+e.target.value;renderDashboard()}}
   else if(UI.mode==='quarter'){if(!UI.sel||UI.sel>4)UI.sel=UI.year===CUR_Y?Math.ceil(CUR_M/3):4;
-    fs.innerHTML=`<div class="seg">${[1,2,3,4].map(q=>`<button data-q="${q}" aria-pressed="${q===UI.sel}">Q${q}</button>`).join('')}</div>`;
-    $$('#fSel button').forEach(b=>b.onclick=()=>{UI.sel=+b.dataset.q;renderDashboard()})}
-  else fs.innerHTML=''}
+    fs.innerHTML=`<select id="fQ" class="pick" aria-label="Quarter">${[1,2,3,4].map(q=>`<option value="${q}"${q===UI.sel?' selected':''}>Q${q}</option>`).join('')}</select>`;
+    $('#fQ').onchange=e=>{UI.sel=+e.target.value;renderDashboard()}}
+  else fs.innerHTML='';
+  const opts=UI.mode==='month'?[['prev','Previous month'],['yoy','Same month last year']]:UI.mode==='quarter'?[['prev','Previous quarter'],['yoy','Same quarter last year']]:[['yoy',UI.mode==='ytd'?'Same period last year':'Previous year']];
+  $('#fCmp').innerHTML=opts.map(([v,l])=>`<option value="${v}"${(v===UI.cmp||opts.length===1)?' selected':''}>${l}</option>`).join('')}
 $('#fYear').onchange=e=>{UI.year=+e.target.value;renderDashboard()};
-$$('#fMode button').forEach(b=>b.onclick=()=>{if(UI.mode!==b.dataset.m){UI.mode=b.dataset.m;UI.sel=null}renderDashboard()});
+$('#fMode').onchange=e=>{UI.mode=e.target.value;UI.sel=null;renderDashboard()};
+$('#fCmp').onchange=e=>{UI.cmp=e.target.value;renderDashboard()};
 $$('#trendMode button').forEach(b=>b.onclick=()=>{UI.trend=b.dataset.t;$$('#trendMode button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderTrend()});
 
 function renderDashboard(){
   renderFilters();
   const reps=repsSorted();
   const months=periodMonths(UI.year,UI.mode,UI.sel);const label=periodLabel(UI.year,UI.mode,UI.sel);
-  const cur=agg(months);const pv=prevPeriod(UI.year,UI.mode,UI.sel);const prev=agg(pv.months);
+  const cur=agg(months);const pv=comparePeriod(UI.year,UI.mode,UI.sel);const prev=agg(pv.months);
   const tTotal=reps.reduce((s,r)=>s+targetFor(r.id,months),0);
   const pend=pending();const pendAmt=pend.reduce((s,e)=>s+e.amount,0);
   const delta=prev.total?(cur.total-prev.total)/prev.total:NaN;
   const att=tTotal?cur.total/tTotal:NaN;const [sc,st]=status(att);
   const onT=reps.filter(r=>{const t=targetFor(r.id,months);return t&&((cur.rep[r.id]||{}).total||0)>=t}).length;
   const withT=reps.filter(r=>targetFor(r.id,months)>0).length;
-  if(!S.loaded){$('#kpis').innerHTML=`<div class="kpi"><div class="eyebrow">Loading</div><div class="sub">Fetching approved sales…</div></div>`;return}
-  $('#kpis').innerHTML=`
-   <div class="kpi"><div class="eyebrow">Company revenue</div><div class="v num">${compact(cur.total)}</div>
-     <div class="d">${isFinite(delta)?`<span class="${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${pct(Math.abs(delta))}</span> vs ${esc(pv.label)}`:`No approved sales in ${esc(pv.label)}`}</div></div>
-   <div class="kpi"><div class="eyebrow">Target attainment</div><div class="v num">${tTotal?pct(att):'—'}</div>
-     <div class="meter" title="Company target"><i style="width:${Math.min(100,(att||0)*100/1.25)}%"></i><b style="left:${100/1.25}%"></b></div>
-     <div class="d">${tTotal?`<span class="pill ${sc}">${st}</span> ${compact(cur.total)} of ${compact(tTotal)}`:'No targets set for this period'}</div></div>
-   <div class="kpi"><div class="eyebrow">Salespeople on target</div><div class="v num">${withT?onT+' <span style="font-size:18px;color:var(--muted)">of '+withT+'</span>':'—'}</div>
-     <div class="d">${withT?(onT===withT?'Everyone has hit target':`${withT-onT} still below target`):'Set targets under Targets & team'}</div></div>
-   <div class="kpi"><div class="eyebrow">Waiting for Finance</div><div class="v num">${pend.length}</div>
-     <div class="d">${pend.length?`${compact(pendAmt)} not counted yet · <button class="link" data-goto="review">Review</button>`:'Nothing waiting'}</div></div>`;
-  $$('#kpis [data-goto]').forEach(x=>x.onclick=()=>setTab(x.dataset.goto));
+  if(!S.loaded){['cStatus','cRev','cTgt','cPend','cNew','cTop'].forEach(id=>cardSet(id,'<div class="cempty">Loading…</div>'));return}
+  renderOverview({cur,prev,months,pv,reps,tTotal,att,sc,st,onT,withT});
 
   // bullets
   $('#bulSub').textContent=label+' · bars sorted by revenue';
@@ -489,6 +740,104 @@ function renderDashboard(){
         showTip(ev,`<div class="tt">${esc(r.name)}</div>${tipRow('Actual',money(r.a))}${tipRow('Target',r.t?money(r.t):'Not set')}${tipRow('Gap to target',r.t?money(r.a-r.t):'—')}${tipRow(pv.label,money(r.p))}${top.length?'<hr><div class="sub" style="margin-bottom:3px">Top customers</div>'+top.map(([n,v])=>tipRow(n,compact(v))).join(''):''}`)};
       el.onmouseleave=hideTip;el.style.cursor='pointer';el.onclick=()=>{UI.custRep=r.id;UI.custAll=false;renderCustomers(cur,label)}})}
   renderCustomers(cur,label);renderSummary(cur,prev,months,label,pv);renderTrend()}
+
+/* ---------- overview cards ---------- */
+function cardSet(id,html){$('#'+id+' .cb').innerHTML=html}
+function hb(id,html){const t=$('#'+id+' h3');let s=t.querySelector('.hb');if(!s){s=document.createElement('span');s.className='hb';t.insertBefore(s,t.querySelector('.rt'))}s.innerHTML=html}
+function updated(){let s=null;try{s=window.hubStore&&window.hubStore.savedAt()}catch(e){}if(!s)return '';const d=new Date(s);if(isNaN(d))return '';
+  return 'Updated '+(d.toDateString()===new Date().toDateString()?d.toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('en-SG',{day:'numeric',month:'short'}))}
+const foot=left=>`<div class="cfoot"><span>${left||''}</span><span class="sub">${updated()}</span></div>`;
+function dBadge(c,p){if(!p&&!c)return '';if(!p)return '<span class="delta up">New</span>';const d=(c-p)/p;
+  if(Math.abs(d)<0.0005)return '<span class="delta flat">0%</span>';return `<span class="delta ${d>0?'up':'down'}">${d>0?'+':'−'}${pct(Math.abs(d))}</span>`}
+
+/* small line / bar chart: o={series:[{v,color,dash,label}],type,band:Set,fmt,tip,int} */
+function spark(el,o){
+  const n=12,W=Math.max(200,Math.round(el.getBoundingClientRect().width)||320),H=o.h||124,mt=18,mb=20,ih=H-mt-mb;
+  const vals=o.series.flatMap(s=>s.v.filter(v=>v!=null));const mx=Math.max(0,...vals);
+  if(!mx){el.dataset.w=W;el.innerHTML=`<div class="cempty" style="height:${H}px;display:flex;align-items:center">${esc(o.empty||'Nothing to chart yet.')}</div>`;return}
+  const top=mx?(o.int?Math.max(1,Math.ceil(mx)):niceMax(mx*1.05)):1;
+  const Y=v=>mt+ih-(v/top)*ih;const isBar=o.type==='bar';const bw=W/n;const X=i=>isBar?i*bw+bw/2:(i*(W-8)/(n-1))+4;
+  const band=[...(o.band||[])].sort((a,b)=>a-b);
+  el.dataset.w=W;let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" preserveAspectRatio="xMinYMin meet" role="img" aria-label="${esc(o.label||'')}">`;
+  if(band.length&&!isBar){const step=(W-8)/(n-1);const x0=Math.max(0,X(band[0])-step/2),x1=Math.min(W,X(band[band.length-1])+step/2);s+=`<rect x="${x0}" y="${mt}" width="${x1-x0}" height="${ih}" style="fill:var(--accent-soft)" opacity=".7"/>`}
+  s+=`<line x1="0" x2="${W}" y1="${Y(top)}" y2="${Y(top)}" style="stroke:var(--line)"/><line x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}" style="stroke:var(--axis)"/>`;
+  s+=`<text x="0" y="${Y(top)-5}" class="num">${esc(o.fmt(top))}</text>`;
+  s+=`<text x="${isBar?X(0)-bw/2+2:0}" y="${H-4}">${MON[0]}</text><text x="${W}" y="${H-4}" text-anchor="end">${MON[11]}</text>`;
+  if(isBar){const sr=o.series[0];const cw=Math.min(14,bw*.6);const bs=new Set(band);
+    sr.v.forEach((v,i)=>{if(!v)return;const x=X(i)-cw/2,y1=Y(v),y0=Y(0),hh=y0-y1,rr=Math.min(4,hh,cw/2);
+      s+=`<path d="M${x},${y0}V${y1+rr}Q${x},${y1} ${x+rr},${y1}H${x+cw-rr}Q${x+cw},${y1} ${x+cw},${y1+rr}V${y0}Z" style="fill:${sr.color}" opacity="${!bs.size||bs.has(i)?1:.35}"/>`})}
+  else{[...o.series].reverse().forEach(sr=>{const pts=sr.v.map((v,i)=>v==null?null:[X(i),Y(v)]).filter(Boolean);if(!pts.length)return;
+      s+=`<path d="M${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')}" fill="none" style="stroke:${sr.color}" stroke-width="2" ${sr.dash?'stroke-dasharray="4 3"':''} stroke-linejoin="round" stroke-linecap="round"/>`;
+      if(pts.length===1)s+=`<circle cx="${pts[0][0]}" cy="${pts[0][1]}" r="3" style="fill:${sr.color}"/>`});
+    s+=`<line class="xh" x1="0" x2="0" y1="${mt}" y2="${mt+ih}" style="stroke:var(--axis)" visibility="hidden"/>`;
+    o.series.forEach((sr,k)=>{s+=`<circle class="hd" data-k="${k}" r="4" style="fill:${sr.color};stroke:var(--panel)" stroke-width="2" visibility="hidden"/>`})}
+  for(let i=0;i<n;i++){const x0=isBar?i*bw:Math.max(0,X(i)-(W-8)/(n-1)/2);const w=isBar?bw:(W-8)/(n-1);s+=`<rect class="hit" data-i="${i}" x="${x0}" y="0" width="${w}" height="${H}" fill="transparent"/>`}
+  s+='</svg>';el.innerHTML=s;
+  const xh=el.querySelector('.xh'),dots=[...el.querySelectorAll('.hd')];
+  el.querySelectorAll('.hit').forEach(r=>{const i=+r.dataset.i;
+    r.onmousemove=ev=>{if(xh){xh.setAttribute('x1',X(i));xh.setAttribute('x2',X(i));xh.setAttribute('visibility','visible')}
+      dots.forEach(d=>{const v=o.series[+d.dataset.k].v[i];if(v==null){d.setAttribute('visibility','hidden');return}d.setAttribute('cx',X(i));d.setAttribute('cy',Y(v));d.setAttribute('visibility','visible')});
+      showTip(ev,o.tip(i))};
+    r.onmouseleave=()=>{hideTip();if(xh)xh.setAttribute('visibility','hidden');dots.forEach(d=>d.setAttribute('visibility','hidden'))}})}
+
+function firstMonths(){const f={};for(const e of approved()){const k=String(e.customer).trim().toLowerCase();if(!k)continue;if(!f[k]||e.month<f[k].m)f[k]={m:e.month,n:String(e.customer).trim()}}return f}
+
+function renderOverview(c){
+  const y=UI.year,set=new Set(c.months),band=new Set(c.months.filter(m=>m.startsWith(y+'-')).map(m=>+m.slice(5)-1));
+  const lastM=ytdLast(y)||12;const yearEnded=y<CUR_Y;const upto=yearEnded?12:lastM;
+  const monthTotals=yy=>{const a=Array(12).fill(0);for(const e of approved())if(e.month.startsWith(yy+'-'))a[+e.month.slice(5)-1]+=e.amount;return a};
+
+  // 1. submissions by status
+  const ents=allEntries().filter(e=>set.has(e.month));
+  const G=[['approved','Approved','var(--good)'],['pending','With Finance','var(--warn)'],['rejected','Rejected','var(--bad)']].map(([k,l,col])=>{const l2=ents.filter(e=>e.status===k);return {k,l,col,n:l2.length,sum:l2.reduce((s,e)=>s+e.amount,0)}});
+  const tot=G.reduce((s,g)=>s+g.sum,0);
+  cardSet('cStatus',`<div class="sbar${tot?'':' none'}">${tot?G.filter(g=>g.sum>0).map(g=>`<i style="flex:${g.sum} 1 0;background:${g.col}" title="${g.l}: ${money(g.sum)}"></i>`).join(''):''}</div>`+
+    G.map(g=>`<div class="srow"><span class="dot" style="background:${g.col}"></span><span>${g.l} <span class="c">· ${g.n} entr${g.n===1?'y':'ies'}</span></span><b class="num">${money(g.sum)}</b></div>`).join('')+
+    foot(`<button class="link" data-goto="review">View more</button>`));
+
+  // 2. approved revenue
+  hb('cRev',dBadge(c.cur.total,c.prev.total));
+  const cy=monthTotals(y),py=monthTotals(y-1);
+  cardSet('cRev',`<div class="big"><span class="v num">${money(c.cur.total)}</span><span class="p num">${money(c.prev.total)} ${esc(c.pv.label)}</span></div><div class="spark" id="spRev"></div>
+    <div class="skey"><span><i></i>${y}</span><span><i class="d"></i>${y-1}</span></div>`+foot(`<button class="link" data-jump="pTrend">View more</button>`));
+  spark($('#spRev'),{empty:'No approved revenue in '+y+' or '+(y-1)+' yet.',label:'Approved revenue by month',series:[{v:cy.map((v,i)=>i<upto?v:null),color:'var(--accent)'},{v:py,color:'var(--prev)',dash:true}],band,fmt:compact,
+    tip:i=>`<div class="tt">${MON[i]}</div>${tipRow(String(y),i<upto?money(cy[i]):'—','var(--accent)')}${tipRow(String(y-1),money(py[i]),'var(--prev)')}`});
+
+  // 3. target attainment
+  if(!c.tTotal){hb('cTgt','');cardSet('cTgt',`<div class="cempty">No targets set for this period.</div>`+foot(`<button class="link" data-goto="targets">Set targets</button>`))}
+  else{hb('cTgt',`<span class="pill ${c.sc}">${c.st}</span>`);
+    const tm=Array(12).fill(0);for(const r of c.reps)for(let i=0;i<12;i++)tm[i]+=+((S.targets[r.id]||{})[ym(y,i+1)])||0;
+    let a=0,t=0;const ca=cy.map((v,i)=>{a+=v;return i<upto?a:null}),ct=tm.map(v=>t+=v);
+    cardSet('cTgt',`<div class="big"><span class="v num">${pct(c.att)}</span><span class="p num">${compact(c.cur.total)} of ${compact(c.tTotal)} target</span></div>
+      <div class="sub">${c.withT?`${c.onT} of ${c.withT} salespeople on target`:''}</div><div class="spark" id="spTgt"></div>
+      <div class="skey"><span><i></i>Actual, running total</span><span><i class="d"></i>Target</span></div>`+foot(`<button class="link" data-jump="pBul">View more</button>`));
+    spark($('#spTgt'),{label:'Running revenue against running target',series:[{v:ca,color:'var(--accent)'},{v:ct,color:'var(--prev)',dash:true}],band,fmt:compact,
+      tip:i=>`<div class="tt">Jan–${MON[i]} ${y}</div>${tipRow('Actual',ca[i]!=null?money(ca[i]):'—','var(--accent)')}${tipRow('Target',money(ct[i]),'var(--prev)')}${ca[i]!=null&&ct[i]?'<hr>'+tipRow('Attainment',pct(ca[i]/ct[i])):''}`})}
+
+  // 4. waiting for finance (all periods)
+  const pend=pending().sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt)));const ps=pend.reduce((s,e)=>s+e.amount,0);
+  cardSet('cPend',(pend.length?`<div class="big"><span class="v num">${pend.length}</span><span class="p num">${money(ps)} not counted yet</span></div>`+
+      pend.slice(0,3).map(e=>`<div class="li"><div><b class="num">${money(e.amount)}</b><div class="sub">${fmtDate(e.submittedAt)} · ${esc(repName(e.repId))} · ${esc(e.customer)}</div></div><span class="pill warn">With Finance</span></div>`).join('')
+    :`<div class="cempty">Nothing waiting. New submissions appear here.</div>`)+
+    foot(pend.length?`${Math.min(3,pend.length)} of <button class="link" data-goto="review">${pend.length} result${pend.length===1?'':'s'}</button>`:`<button class="link" data-goto="submit">Submit sales</button>`));
+
+  // 5. new customers
+  const fm=Object.values(firstMonths());const cnt=ms=>{const s2=new Set(ms);return fm.filter(f=>s2.has(f.m)).length};
+  const nc=cnt(c.months),np=cnt(c.pv.months);hb('cNew',dBadge(nc,np));
+  const per=Array(12).fill(0);fm.forEach(f=>{if(f.m.startsWith(y+'-'))per[+f.m.slice(5)-1]++});
+  cardSet('cNew',`<div class="big"><span class="v num">${nc}</span><span class="p num">${np} ${esc(c.pv.label)}</span></div><div class="spark" id="spNew"></div>`+foot(`<button class="link" data-jump="pCust">View more</button>`));
+  spark($('#spNew'),{empty:'No new customers in '+y+' yet.',label:'New customers by month',type:'bar',int:true,series:[{v:per,color:'var(--accent)'}],band,fmt:v=>String(v),
+    tip:i=>{const names=fm.filter(f=>f.m===ym(y,i+1)).map(f=>f.n);return `<div class="tt">${MON[i]} ${y}</div>${tipRow('New customers',String(per[i]))}${names.length?'<hr><div class="sub">'+names.slice(0,6).map(esc).join('<br>')+(names.length>6?'<br>+'+(names.length-6)+' more':'')+'</div>':''}`}});
+
+  // 6. top customers
+  $('#cTopLbl').textContent=shortLabel(y,UI.mode,UI.sel);
+  const top=Object.entries(c.cur.cust).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
+  cardSet('cTop',(top.length?top.map(([n,v])=>{const rs=Object.entries(v.byRep).sort((a,b)=>b[1]-a[1]).map(([id])=>repName(id));
+      return `<div class="li"><div><b>${esc(n)}</b><div class="sub">${esc(rs.slice(0,2).join(', '))}${rs.length>2?' +'+(rs.length-2):''}</div></div><b class="num">${money(v.total)}</b></div>`}).join('')
+    :`<div class="cempty">No approved revenue in this period.</div>`)+foot(`<button class="link" data-jump="pCust">View more</button>`));
+
+  $$('#v-dashboard .card [data-goto]').forEach(b=>b.onclick=()=>setTab(b.dataset.goto));
+  $$('#v-dashboard .card [data-jump]').forEach(b=>b.onclick=()=>{const t=document.getElementById(b.dataset.jump);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})})}
 
 function renderCustomers(cur,label){
   const reps=repsSorted();
@@ -558,12 +907,13 @@ function renderTrend(){
       const rows=vis.filter(r=>d.byRep[r.id]||!isStack).sort((a,b)=>(d.byRep[b.id]||0)-(d.byRep[a.id]||0)).map(r=>tipRow(r.name,compact(d.byRep[r.id]||0),repColor(r.id))).join('');
       showTip(ev,`<div class="tt">${mLabel(d.m)}</div>${rows||'<div class="sub">No approved revenue</div>'}<hr>${tipRow('Total',money(d.total))}${d.target?tipRow('Target',money(d.target))+tipRow('Attainment',pct(d.total/d.target)):''}`)};
     h.onmouseleave=()=>{hideTip();xh.setAttribute('visibility','hidden')}})}
-let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(UI.tab==='dashboard')renderTrend()},120)});
+if(window.ResizeObserver){let ro;new ResizeObserver(()=>{if(UI.tab!=='dashboard'||!S.loaded)return;const sp=$('#spRev');if(sp&&Math.abs(sp.getBoundingClientRect().width-(+sp.dataset.w||0))<2)return;clearTimeout(ro);ro=setTimeout(renderDashboard,60)}).observe($('#cRev'))}
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(UI.tab==='dashboard')renderDashboard()},120)});
 
 /* ---------- export ---------- */
 $('#exportBtn').onclick=async()=>{
   if(typeof XLSX==='undefined'){toast("The Excel library didn't load. Reload the page and try again.");return}
-  const reps=repsSorted(),y=UI.year,months=periodMonths(y,UI.mode,UI.sel),label=periodLabel(y,UI.mode,UI.sel),pv=prevPeriod(y,UI.mode,UI.sel);
+  const reps=repsSorted(),y=UI.year,months=periodMonths(y,UI.mode,UI.sel),label=periodLabel(y,UI.mode,UI.sel),pv=comparePeriod(y,UI.mode,UI.sel);
   const cur=agg(months),prev=agg(pv.months);const wb=XLSX.utils.book_new();
   const sum=[['Hub Sales export'],['Period',label],['Figures','Finance-approved revenue, SGD'],['Exported',new Date().toLocaleString('en-SG')],[],['Salesperson','Revenue','Target','Gap to target','Attainment','Previous period ('+pv.label+')','Change','Customers']];
   let T=[0,0,0];reps.forEach(r=>{const a=(cur.rep[r.id]||{}).total||0,t=targetFor(r.id,months),p=(prev.rep[r.id]||{}).total||0;T[0]+=a;T[1]+=t;T[2]+=p;
@@ -602,7 +952,7 @@ $('#addLine').onclick=()=>addLine().querySelector('.c').focus();
 for(let i=0;i<3;i++)addLine();
 $('#subSend').onclick=async()=>{
   const msg=$('#subMsg');msg.className='msg';const rep=$('#subRep').value;
-  if(!S.db){msg.className='msg err';msg.textContent='Not connected to the shared data store.';return}
+  if(!S.db){msg.className='msg err';msg.textContent='This browser cannot save data.';return}
   if(!rep){msg.className='msg err';msg.textContent='Choose the salesperson first.';$('#subRep').focus();return}
   const lines=[],errs=[];$$('#subLines tr').forEach((tr,i)=>{const c=tr.querySelector('.c').value.trim(),m=tr.querySelector('.m').value,a=tr.querySelector('.a').value,n=tr.querySelector('.n').value.trim();
     if(!c&&!a)return;if(!c)errs.push(`Line ${i+1}: add the customer name.`);else if(!/^\d{4}-\d{2}$/.test(m))errs.push(`Line ${i+1}: pick the month.`);else if(!(+a>0))errs.push(`Line ${i+1}: enter revenue above zero.`);else lines.push({c,m,a:+a,n})});
@@ -679,7 +1029,7 @@ function renderImport(){const I=UI.imp,box=$('#impResult');if(!I){box.innerHTML=
    <div class="formfoot"><button class="btn primary" id="impSend" ${ready?'':'disabled'}>Send ${ok.length} row${ok.length===1?'':'s'} to Finance</button><button class="btn" id="impCancel">Cancel</button></div>`;
   const as=$('#impAssign');if(as)as.onchange=e=>{I.assign=e.target.value;renderImport()};
   $('#impCancel').onclick=()=>{UI.imp=null;renderImport()};
-  $('#impSend').onclick=async()=>{if(!S.db){toast('Not connected to the shared data store.');return}
+  $('#impSend').onclick=async()=>{if(!S.db){toast('This browser cannot save data.');return}
     const now=new Date().toISOString(),batch=newId();
     const list=ok.map(r=>({id:newId(),month:r.month,repId:I.hasRep?r.repId:I.assign,customer:r.customer,amount:Math.round(r.amount*100)/100,status:'pending',source:'import',batch,file:I.fname,submittedAt:now,note:'',reviewNote:''}));
     $('#impSend').disabled=true;
@@ -759,7 +1109,7 @@ $('#tgtSave').onclick=async()=>{const y=UI.tgtYear,tp={},rp={};
   catch(err){writeErr(err);$('#tgtSave').disabled=false}};
 $('#addRep').onclick=async()=>{const nm=$('#newRep').value.trim();const msg=$('#repMsg');msg.className='msg';
   if(!nm){$('#newRep').focus();return}if(repsSorted().some(r=>r.name.toLowerCase()===nm.toLowerCase())){msg.className='msg err';msg.textContent=nm+' is already on the team.';return}
-  if(!S.db){msg.className='msg err';msg.textContent='Not connected.';return}
+  if(!S.db){msg.className='msg err';msg.textContent='This browser cannot save data.';return}
   const id='r'+Date.now().toString(36);const order=Math.max(0,...repsSorted().map(r=>r.order))+1;
   try{await patchDoc('config/reps',{list:{[id]:{name:nm,order}}});$('#newRep').value='';msg.className='msg ok';msg.textContent='Added '+nm+'. Set their targets above.'}catch(err){writeErr(err)}};
 $('#newRep').onkeydown=e=>{if(e.key==='Enter')$('#addRep').click()};
@@ -768,6 +1118,19 @@ $('#clearNo').onclick=()=>{$('#clearConfirm').hidden=true;$('#clearSample').hidd
 $('#clearYes').onclick=async()=>{try{for(const m of Object.keys(S.months))await S.db.doc('months/'+m).delete();
     await S.db.doc('config/targets').set({byRep:{}});await S.db.doc('config/reps').set({list:{}});await S.db.doc('config/meta').set({sample:false,currency:'SGD'});
     UI.tgtDirty=false;toast('Sample data cleared. Add your team to get started.');$('#clearConfirm').hidden=true;$('#clearSample').hidden=false}catch(err){writeErr(err)}};
+
+/* ---------- backup / restore (this browser only) ---------- */
+let bkText=null;
+$('#bkDownload').onclick=async()=>{const m=$('#bkMsg');try{await window.hubStore.backup();m.className='msg ok';m.textContent='Backup downloaded.'}catch(err){console.error(err);m.className='msg err';m.textContent="Couldn't create the backup."}};
+$('#bkRestore').onclick=()=>{$('#bkFile').value='';$('#bkFile').click()};
+$('#bkFile').onchange=()=>{const f=$('#bkFile').files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{bkText=String(r.result);$('#bkName').textContent=f.name;$('#bkConfirm').hidden=false;$('#bkRestore').hidden=true;$('#bkMsg').textContent=''};
+  r.onerror=()=>{const m=$('#bkMsg');m.className='msg err';m.textContent="Couldn't read that file."};r.readAsText(f)};
+$('#bkNo').onclick=()=>{bkText=null;$('#bkConfirm').hidden=true;$('#bkRestore').hidden=false};
+$('#bkYes').onclick=async()=>{const m=$('#bkMsg');
+  try{await window.hubStore.restore(bkText);UI.tgtDirty=false;renderTargets(true);m.className='msg ok';m.textContent='Restored.';toast('Backup restored.')}
+  catch(err){console.error(err);m.className='msg err';m.textContent=err&&err.code==='invalid_argument'?"That isn't a Hub Sales backup file.":(err&&err.code==='quota_exceeded'?"This browser's storage is full.":"Couldn't restore. This browser is blocking storage.")}
+  bkText=null;$('#bkConfirm').hidden=true;$('#bkRestore').hidden=false};
 
 /* ---------- refresh ---------- */
 let rf=0;
